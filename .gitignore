@@ -1,0 +1,93 @@
+# ------------------------------------------------------------
+# OS / Editor
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# JetBrains
+.idea/
+
+# ------------------------------------------------------------
+# Python (generic)
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+dist/
+wheelhouse/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.ruff_cache/
+.pytype/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+
+# ------------------------------------------------------------
+# ROS 2 / colcon build artifacts (ignore anywhere)
+# ------------------------------------------------------------
+**/build/
+**/install/
+**/log/
+
+# ROS tooling / runtime leftovers (if they land in repo)
+.ros/
+ros_ws/
+
+# ------------------------------------------------------------
+# ROS bags / recordings
+# (Keep if you explicitly want to version them; usually huge)
+# ------------------------------------------------------------
+rosbag2_*/
+*.db3
+*.mcap
+
+# ------------------------------------------------------------
+# Temporary / output directories
+# ------------------------------------------------------------
+tmp/
+temp/
+out/
+output/
+artifacts/
+*.tmp
+*.swp
+*.swo
+
+# ------------------------------------------------------------
+# Docker / Compose
+# (Uncomment if you use secrets in .env locally)
+# ------------------------------------------------------------
+# .env
+# .env.*
+
+# ------------------------------------------------------------
+# Tool-specific caches (optional)
+# ------------------------------------------------------------
+.codex/
+.aider*
