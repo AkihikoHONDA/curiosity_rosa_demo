@@ -1,1 +1,41 @@
-# Placeholder; populated in later tasks.
+images:
+  input_compressed: "/image_raw/compressed"
+  output_capture_compressed: "/capture/image_raw/compressed"
+
+trace:
+  events: "/trace/events"
+
+tf:
+  base_frame: "base_link"
+  world_frame: "map"
+
+services:
+  capture_and_score:
+    kind: "service"
+    name: "/capture_and_score"
+    type: "curiosity_rosa_demo/srv/CaptureAndScore"
+
+adapter:
+  move_forward: { kind: "service", name: "/adapter/move_forward", type: "std_srvs/srv/Trigger" }
+  turn_left:    { kind: "service", name: "/adapter/turn_left",    type: "std_srvs/srv/Trigger" }
+  turn_right:   { kind: "service", name: "/adapter/turn_right",   type: "std_srvs/srv/Trigger" }
+  move_stop:    { kind: "service", name: "/adapter/move_stop",    type: "std_srvs/srv/Trigger" }
+
+  mast_open:    { kind: "service", name: "/adapter/mast_open",    type: "std_srvs/srv/Trigger" }
+  mast_close:   { kind: "service", name: "/adapter/mast_close",   type: "std_srvs/srv/Trigger" }
+  mast_rotate:  { kind: "service", name: "/adapter/mast_rotate",  type: "std_srvs/srv/Trigger" }
+
+  get_status:   { kind: "service", name: "/adapter/get_status",   type: "std_srvs/srv/Trigger" }
+
+curiosity:
+  move_forward: { kind: "service", name: "/move_forward", type: "std_srvs/srv/Empty" }
+  turn_left:    { kind: "service", name: "/turn_left",    type: "std_srvs/srv/Empty" }
+  turn_right:   { kind: "service", name: "/turn_right",   type: "std_srvs/srv/Empty" }
+  move_stop:    { kind: "service", name: "/move_stop",    type: "std_srvs/srv/Empty" }
+
+  mast_open:    { kind: "service", name: "/mast_open",    type: "std_srvs/srv/Empty" }
+  mast_close:   { kind: "service", name: "/mast_close",   type: "std_srvs/srv/Empty" }
+  mast_rotate:  { kind: "service", name: "/mast_rotate",  type: "std_srvs/srv/Empty" }
+
+viz:
+  marker_array: "/visualization_marker_array"
