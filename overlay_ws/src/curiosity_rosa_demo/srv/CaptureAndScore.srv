@@ -1,0 +1,10 @@
+# Request
+---
+# Response
+bool ok
+float32 score
+bool is_good
+string error_reason
+string image_topic
+builtin_interfaces/Time stamp
+string debug
