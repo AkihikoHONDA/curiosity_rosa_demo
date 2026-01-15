@@ -39,6 +39,7 @@ For every task implementation, the agent must follow the gates defined in `~/.co
 Additional repo rule:
 - Always stop after the planning gate (Gate B) and wait for the user’s “OK” before making edits.
 - Also stop before any documentation backflow updates (Gate E), unless explicitly instructed.
+- Even when no documentation update is needed, explicitly state that Gate E is not required before proceeding to Gate F.
 
 ---
 
