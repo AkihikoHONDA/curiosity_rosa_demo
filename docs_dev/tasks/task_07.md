@@ -19,40 +19,26 @@
   - `string debug`（任意だが、調査効率のため付与する）
 
 - [ ] Simulator Node が当該serviceを提供し、呼び出し時点の「直近観測」を返すこと。
-
   - `score/is_good` は `last_score`（T05）から取得
-
   - `image_topic` は加工済み画像のトピック（`topics.images.output_capture_compressed`）を返す
-
   - `stamp` は返答時刻で良い（画像時刻と厳密一致させない）
 
 - [ ] 観測不能時の挙動を仕様化し、実装とテストで固定すること。
-
   方針は以下を正とする。
   - 画像未受信、TF未解決、内部例外などの場合は `ok=false` を返す
-
   - `error_reason` は空にしない（例: "image not received yet", "tf lookup failed", "exception: ..."）
-
   - `score/is_good` はデフォルト値で返しても良いが、エージェントが誤解しないよう `ok=false` を必ず優先する
 
 - [ ] テスト併走。
-
   - [ ] `colcon build` が通り、srv生成が成立する
-
   - [ ] 可能なら rclpy 統合テスト: service call してレスポンスの型とフィールドが期待通り
-
   - [ ] 少なくとも手動スモーク手順をDoDに含める（`ros2 service call ...` をREADMEに記載）
 
 - [ ] 作成・修正ファイル。
-
   - `curiosity_rosa_demo/srv/CaptureAndScore.srv`
-
   - `curiosity_rosa_demo/sim/simulator_node.py`（service追加）
-
   - `curiosity_rosa_demo/tests/test_capture_and_score_srv.py`（可能なら）
-
   - `package.xml / setup.py / CMakeLists.txt`（srv生成に必要な追記）
-
   - `README.md`（手動呼び出し例追記）
 
 ## 実装詳細
@@ -63,5 +49,4 @@
 ## 前提条件
 - 完了しておくべきタスク:
   - T06
-
   - T03

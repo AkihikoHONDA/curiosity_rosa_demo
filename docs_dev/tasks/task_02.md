@@ -10,21 +10,14 @@
 
 ## 目的 / 完了条件 (DoD)
 - [ ] `overlay_ws/src/curiosity_rosa_demo/curiosity_rosa_demo/infra/config_loader.py` を実装し、以下のYAMLを読み込めること。
-
   - `config/topics.yaml`
-
   - `config/thresholds.yaml`
-
   - `config/tool_costs.yaml`
-
   - `config/prompts.yaml`
-
   - `config/rviz.yaml`（中身は後続で増えてよいが、読込対象として確定）
 
 - [ ] 設定ディレクトリの解決規則を確定し、実装とREADME（またはdocstring）に明記すること。
-
   デフォルトは ament index から `curiosity_rosa_demo` の share directory を解決し、その配下 `config/` を参照する。
-
   上書きは ROS2 parameter `config_dir`（文字列）で指定できる（指定時はそのディレクトリを最優先）。
 
 - [ ] 最低限のバリデーションを実装すること（不足キーは例外で落とす）。
@@ -64,25 +57,18 @@
   - `tools`（辞書）かつ各値は 0 以上の整数
 
 - [ ] データ構造をコード上で扱いやすい形（dataclass）にすること。
-
   - `TopicsConfig / ThresholdsConfig / ToolCostsConfig / PromptsConfig / RvizConfig`
-
   - まとめて返す `ConfigBundle`
 
 - [ ] テスト併走（最低限）。
-
   - [ ] `pytest -q` が通る
-
   - [ ] 正常系: 最小YAMLを読み込み、期待値が dataclass に入る
-
   - [ ] 異常系: 必須キー欠落・範囲外値で例外になる（例外メッセージにファイル名とキーを含める）
 
 ## 実装詳細
 - 実装する関数（例）
   - `resolve_config_dir(node: Node | None, override: str | None = None) -> Path`
-
   - `load_all_configs(config_dir: Path | None = None, node: Node | None = None) -> ConfigBundle`
-
   - `load_topics_config(path: Path) -> TopicsConfig` 等
 
 - 実装メモ
