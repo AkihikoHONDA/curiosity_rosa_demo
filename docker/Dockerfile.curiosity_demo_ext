@@ -1,0 +1,8 @@
+FROM osrf/space-ros:curiosity_demo
+
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-opencv \
+    python3-numpy \
+  && rm -rf /var/lib/apt/lists/*
+USER spaceros-user
