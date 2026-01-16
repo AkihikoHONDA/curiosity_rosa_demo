@@ -5,6 +5,7 @@
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+*:Zone.Identifier
 
 # VS Code
 .vscode/*
