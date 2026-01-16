@@ -17,6 +17,16 @@ docker run --rm -it --net=host \
   bash -lc "source /opt/ros/*/setup.bash && cd /workspace/overlay_ws && colcon build"
 ```
 
+If you use the extended image, the build command is the same:
+
+```bash
+docker run --rm -it --net=host \
+  -u $(id -u):$(id -g) \
+  -v "$PWD/overlay_ws:/workspace/overlay_ws" \
+  curiosity_demo_ext \
+  bash -lc "source /opt/ros/*/setup.bash && cd /workspace/overlay_ws && colcon build"
+```
+
 ## Test
 If you need OpenCV/numpy, build the extended image first:
 
@@ -29,7 +39,7 @@ docker run --rm -it --net=host \
   -u $(id -u):$(id -g) \
   -v "$PWD/overlay_ws:/workspace/overlay_ws" \
   curiosity_demo_ext \
-  bash -lc "source /opt/ros/*/setup.bash && cd /workspace/overlay_ws && pytest -q src/curiosity_rosa_demo/tests"
+  bash -lc "source /opt/ros/*/setup.bash && source /opt/rosa_venv/bin/activate && cd /workspace/overlay_ws && pytest -q src/curiosity_rosa_demo/tests"
 ```
 
 ## Manual smoke (CaptureAndScore)

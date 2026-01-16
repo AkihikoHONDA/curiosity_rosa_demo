@@ -4,5 +4,12 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-opencv \
     python3-numpy \
+    python3-pip \
+    python3-venv \
+    git \
   && rm -rf /var/lib/apt/lists/*
+RUN python3 -m venv /opt/rosa_venv
+RUN /opt/rosa_venv/bin/pip install --no-cache-dir "numpy<2"
+RUN /opt/rosa_venv/bin/pip install --no-cache-dir \
+    git+https://github.com/nasa-jpl/rosa.git
 USER spaceros-user
