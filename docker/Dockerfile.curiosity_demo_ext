@@ -12,4 +12,6 @@ RUN python3 -m venv /opt/rosa_venv
 RUN /opt/rosa_venv/bin/pip install --no-cache-dir "numpy<2"
 RUN /opt/rosa_venv/bin/pip install --no-cache-dir \
     git+https://github.com/nasa-jpl/rosa.git
+ENV ROS_LOG_DIR=/tmp/ros_log
+RUN mkdir -p /tmp/ros_log
 USER spaceros-user

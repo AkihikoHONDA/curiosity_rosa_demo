@@ -106,7 +106,7 @@ ROSA は Pythonライブラリとして導入し、Agent Node 内で import し�
 設計上の正は以下である。
 
 * `rosa.ROSA` をエージェントエントリポイントとして用いる
-* `rosa.RobotSystemPrompts` によりプロンプトを構造化して注入する
+* `rosa.RobotSystemPrompts` によりプロンプトを構造化して注入する（実APIでは `about_your_environment` を利用）
 * ツールは `langchain.tools.tool` で定義し、ROSA に tools リストとして渡す
 * ツールは逐次実行（sequential）を前提とし、「実測優先（ROSグラフ確認）」を促す文言を system prompt に含める
 
@@ -287,6 +287,9 @@ TraceEvent を `/trace/events` に publish する。
 * bootstrap（運用知識の追記。自動実行ではなく「system promptへの追記」）
 * memory投入の有効/無効、投入件数
 
+実APIの `RobotSystemPrompts` は `relevant_context` ではなく
+`about_your_environment` を利用するため、Agent実装側でマッピングする。
+
 ## 5.2 Environment Simulator Node（`sim/simulator_node.py`）
 
 ### 責務
@@ -452,8 +455,8 @@ trace:
   events: "/trace/events"
 
 tf:
-  base_frame: "base_link"
-  world_frame: "map"
+  base_frame: "base_footprint"
+  world_frame: "odom"
 
 services:
   capture_and_score:
@@ -590,9 +593,8 @@ Curiosity本体（Gazebo/既存制御ノード）は compose 起動時に既に�
 
 ## 11. 実装フェーズで確定すべき事項（残件）
 
-* TFの base_frame/world_frame の正（demos側TF構成に合わせる）
+* TFの base_frame/world_frame は環境ごとに異なるため、`config/topics.yaml` で調整する
 * RViz Fixed Frame（map/odom等）の正
 * `get_status` に含める情報の最小セット（デモで説明したい内容に合わせる）
 
 以上
-

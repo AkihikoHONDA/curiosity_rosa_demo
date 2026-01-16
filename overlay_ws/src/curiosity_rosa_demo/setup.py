@@ -31,4 +31,11 @@ setup(
     description="Curiosity ROSA demo package.",
     license="Apache-2.0",
     tests_require=["pytest"],
+    entry_points={
+        "console_scripts": [
+            "simulator_node = curiosity_rosa_demo.sim.simulator_node:main",
+            "adapter_node = curiosity_rosa_demo.adapter.adapter_node:main",
+            "agent_node = curiosity_rosa_demo.agent.agent_node:main",
+        ]
+    },
 )

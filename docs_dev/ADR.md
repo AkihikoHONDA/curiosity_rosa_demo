@@ -75,3 +75,39 @@ Test commands should activate the venv before running pytest.
 - ROSA and its Python dependencies are isolated from system packages.
 - Test runs require `source /opt/rosa_venv/bin/activate` when using the
   extended image.
+
+## ADR-004: Provide ROS 2 executables via CMake install scripts
+
+### Status
+Accepted
+
+### Context
+`ros2 run` requires installed executables. Using `ament_python_install_package`
+conflicted with `rosidl_generator_py` targets in this package, causing build
+failures. The package also needs Python modules to be installed for runtime.
+
+### Decision
+Install the Python package directory via CMake and provide explicit executable
+scripts under `scripts/`, installing them into `lib/<package>`.
+
+### Consequences
+- `ros2 run curiosity_rosa_demo <node>` works without `setup.py` entry points.
+- Python modules are installed via CMake, avoiding target conflicts.
+
+## ADR-005: Run containers as non-root with ROS log directory override
+
+### Status
+Accepted
+
+### Context
+Running containers as root causes bind-mounted files to be owned by root on the
+host. Running as the host user avoids this but may block ROS 2 log directory
+creation under `$HOME/.ros/log`.
+
+### Decision
+Run containers as the host user and set `ROS_LOG_DIR` or `ROS_HOME` to a
+writeable path (e.g., `/tmp/ros_log` or `/tmp/ros`).
+
+### Consequences
+- Avoids root-owned files on the host.
+- Requires log directory environment variables in run instructions.

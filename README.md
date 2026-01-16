@@ -48,3 +48,72 @@ After launching the simulator node:
 ```bash
 ros2 service call /capture_and_score curiosity_rosa_demo/srv/CaptureAndScore "{}"
 ```
+
+## Manual smoke (Agent console + trace)
+1) Launch the simulator and adapter nodes, then start the agent node.
+2) In the agent console, run `:cap` and confirm a summary prints to stdout.
+3) In another terminal, confirm trace output:
+
+```bash
+ros2 topic echo /trace/events
+```
+
+Success log example:
+```
+Tool: capture_and_score: ok
+```
+
+Example commands (inside the demo container, after `colcon build`):
+
+Start a single demo container (use `docker exec` for additional terminals):
+```bash
+docker run --rm -it --net=host \
+  -u $(id -u):$(id -g) \
+  -e OPENAI_API_KEY=YOUR_API_KEY \
+  -v "$PWD/overlay_ws:/workspace/overlay_ws" \
+  --name curiosity_demo \
+  curiosity_demo_ext \
+  bash
+```
+
+Note: We run containers as the host user (non-root) to avoid root-owned files on
+the host. The extended image sets `ROS_LOG_DIR=/tmp/ros_log` by default. Override
+if needed.
+
+Terminal A (simulator):
+```bash
+source /opt/ros/*/setup.bash
+source /workspace/overlay_ws/install/setup.bash
+ros2 run curiosity_rosa_demo simulator_node
+```
+
+Terminal B (adapter) - from host:
+```bash
+docker exec -it curiosity_demo bash
+```
+```bash
+source /opt/ros/*/setup.bash
+source /workspace/overlay_ws/install/setup.bash
+ros2 run curiosity_rosa_demo adapter_node
+```
+
+Terminal C (agent console) - from host:
+```bash
+docker exec -it curiosity_demo bash
+```
+```bash
+source /opt/ros/*/setup.bash
+source /workspace/overlay_ws/install/setup.bash
+source /opt/rosa_venv/bin/activate
+ros2 run curiosity_rosa_demo agent_node
+```
+
+Terminal D (trace echo) - from host:
+```bash
+docker exec -it curiosity_demo bash
+```
+```bash
+source /opt/ros/*/setup.bash
+source /workspace/overlay_ws/install/setup.bash
+ros2 topic echo /trace/events
+```

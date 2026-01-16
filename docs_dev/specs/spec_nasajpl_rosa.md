@@ -9,7 +9,7 @@
 ### 1.1 主要コンポーネント
 
 * **ROSA クラス**: エージェントのメインエントリポイントです。ROS バージョンの指定、LLM インスタンスの管理、ツールやプロンプトの統合、対話履歴の保持を担当します。
-* **RobotSystemPrompts**: ロボット固有のメタ情報を保持するクラスです。「身体性とペルソナ」「クリティカルな指示」「行動制約とガードレールの設定」など、複数のカテゴリに分割してプロンプトを管理できます。
+* **RobotSystemPrompts**: ロボット固有のメタ情報を保持するクラスです。「身体性とペルソナ」「クリティカルな指示」「環境情報」「ニュアンス」など、複数のカテゴリに分割してプロンプトを管理できます。
 * **ROSATools**: ROS 標準のプリミティブ（ノード、トピック、サービス、パラメータ、ログ）にアクセスするための組み込みツール群を提供します。これらは ROS 1 または ROS 2 の API をラップしており、正規表現によるフィルタリングやリスト取得が可能です。
 
 ---
@@ -26,7 +26,7 @@
 
 ### 2.2 拡張ツール（Custom Tools）の定義
 
-開発者は、特定のロボット固有の機能を `@tool` デコレータを用いてエージェントに追加できます。追加されたツールは LLM によってその説明文（Docstring）に基づき選択されます。
+開発者は、特定のロボット固有の機能を `@tool` デコレータを用いてエージェントに追加できます。追加されたツールは LLM によってその説明文（Docstring）に基づき選択されます。Docstring が無い場合は `description` を明示する必要があります。
 
 * **入力**: 型ヒントを用いた引数を定義します。LLM はこの型に従って引数を生成します。
 * **出力**: 実行結果や、エラーが発生した際の理由を文字列（または辞書）として返却します。エージェントはこの返却値を見て、次の行動を推論します。
@@ -50,7 +50,7 @@
 
 * **embodiment_and_persona**: ロボットの物理的特性や性格、役割（例：探査ローバー、配送ロボット等）を定義します。
 * **critical_instructions**: 安全確保や運用上の最優先ルール（例：バッテリー残量への注意、衝突回避の優先）を記述します。
-* **relevant_context**: 周辺環境やミッションの背景情報を与えます。
+* **about_your_environment**: 周辺環境やミッションの背景情報を与えます。
 * **nuance_and_assumptions**: 開発者が LLM に持たせたい特定の知識や、暗黙の了解（例：特定の地形での挙動の傾向）を指定します。
 
 ### 3.3 ROS との統合インターフェース
@@ -62,7 +62,7 @@
 
 ### 3.4 LLM インフラストラクチャの柔軟性
 
-`ROSA` は LangChain の `BaseChatModel` を継承する任意の LLM クラスを受け入れます。
+`ROSA` は LangChain の `BaseChatModel` を継承する任意の LLM クラスを受け入れます。本プロジェクトでは `langchain_openai.ChatOpenAI` を明示的に生成して渡しています。
 
 * **プロバイダ非依存**: OpenAI, Anthropic などの商用モデルに加え、Ollama 等を介したローカル LLM の利用も仕様上可能です。これにより、計算リソースや通信環境に応じたエージェント構成が可能となっています。
 
@@ -105,7 +105,7 @@ pip install -e .
 
 開発者は自身のプロジェクトにおいて、以下のような構成で `ROSA` をインポートし、自律エージェントを定義します。
 
-1. **エージェントの初期化**: `rosa.ROSA` クラスをインスタンス化します。この際、LLM インスタンスと ROS バージョンを渡します。
+1. **エージェントの初期化**: `rosa.ROSA` クラスをインスタンス化します。この際、LLM インスタンスと `ros_version=2` を渡します。
 2. **プロンプトの設定**: `rosa.RobotSystemPrompts` を用いて、ロボット固有の定義（身体性や制約）を注入します。
 3. **カスタムツールの登録**: `langchain.tools.tool` デコレータで作成した関数をリスト形式でエージェントに渡します。
 
@@ -135,11 +135,12 @@ def move_forward(distance: float) -> str:
     return f"Moving forward by {distance} units."
 
 prompts = RobotSystemPrompts(
-    embodiment_and_persona="You are a cool robot that can move forward."
+    embodiment_and_persona="You are a cool robot that can move forward.",
+    about_your_environment="The rover operates in a simulated Mars scene."
 )
 
 llm = get_your_llm_here()
-rosa = ROSA(ros_version=1, llm=llm, tools=[move_forward], prompts=prompts)
+rosa = ROSA(ros_version=2, llm=llm, tools=[move_forward], prompts=prompts)
 rosa.invoke("Move forward by 2 units.")
 ```
 
@@ -164,5 +165,6 @@ def descriptive_tool_name(param1: type1, param2: type2) -> str:
 prompts = RobotSystemPrompts(
     embodiment_and_persona="You are a cool robot that does cool stuff.",
     critical_instructions="You must confirm all actions with the operator before proceeding. Failure to do so might result in damage to the robot or its environment.",
+    about_your_environment="This robot operates indoors on a flat surface."
 )
 ```

@@ -21,6 +21,10 @@ try:
 except Exception:  # pragma: no cover - optional dependency
     lc_tool = None
 
+try:
+    from langchain_openai import ChatOpenAI  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    ChatOpenAI = None
 
 TOOL_NAMES = [
     "capture_and_score",
@@ -33,6 +37,18 @@ TOOL_NAMES = [
     "move_stop",
     "get_status",
 ]
+
+TOOL_DESCRIPTIONS = {
+    "capture_and_score": "Capture an image and return brightness score.",
+    "mast_open": "Open the rover mast for observation.",
+    "mast_close": "Close the rover mast for movement.",
+    "mast_rotate": "Rotate the mast to change camera direction.",
+    "move_forward": "Move the rover forward briefly.",
+    "turn_left": "Turn the rover left briefly.",
+    "turn_right": "Turn the rover right briefly.",
+    "move_stop": "Stop rover movement.",
+    "get_status": "Get current rover status summary.",
+}
 
 
 class RosaAgentWrapper:
@@ -76,6 +92,7 @@ class RosaAgentFactory:
         *,
         llm: Optional[Any] = None,
         use_stub: bool = False,
+        tool_callback: Optional[Callable[[str, Any], None]] = None,
     ) -> RosaAgentWrapper:
         memory = build_memory(
             self.prompts.memory.enabled, self.prompts.memory.max_events
@@ -88,11 +105,8 @@ class RosaAgentFactory:
             )
 
         llm = llm or self._build_llm()
-        tools = self._build_tools()
+        tools = self._build_tools(tool_callback)
         system_prompts = self._build_system_prompts(self.prompts)
-        system_prompt_text = self._build_system_prompt_text(
-            self.prompts, system_prompts
-        )
 
         if rosa is None:
             raise RuntimeError(
@@ -103,7 +117,6 @@ class RosaAgentFactory:
             llm=llm,
             tools=tools,
             system_prompts=system_prompts,
-            system_prompt_text=system_prompt_text,
         )
         return RosaAgentWrapper(agent=agent, tool_names=self.tool_names, memory=memory)
 
@@ -114,13 +127,14 @@ class RosaAgentFactory:
             raise RuntimeError(
                 "LLM API key is missing. Set OPENAI_API_KEY or node param llm_api_key."
             )
-        if rosa is None:
+        if ChatOpenAI is None:
             raise RuntimeError(
-                "ROSA package is not installed. Install rosa to use LLM."
+                "langchain_openai is unavailable. Install it to use LLM."
             )
-        if hasattr(rosa, "create_openai_llm"):
-            return rosa.create_openai_llm(api_key=api_key, model=model)
-        raise RuntimeError("ROSA LLM factory is unavailable in this environment.")
+        kwargs = {"openai_api_key": api_key}
+        if model:
+            kwargs["model"] = model
+        return ChatOpenAI(**kwargs)
 
     def _get_param_or_env(
         self, param_name: str, env_name: str, *, required: bool = True
@@ -138,7 +152,9 @@ class RosaAgentFactory:
             return None
         return value
 
-    def _build_tools(self) -> List[Any]:
+    def _build_tools(
+        self, tool_callback: Optional[Callable[[str, Any], None]]
+    ) -> List[Any]:
         tool_funcs = {
             "capture_and_score": tool_impl.capture_and_score,
             "mast_open": tool_impl.mast_open,
@@ -154,25 +170,44 @@ class RosaAgentFactory:
         tools: List[Any] = []
         for name in self.tool_names:
             func = tool_funcs[name]
-            tools.append(self._wrap_tool(name, func))
+            tools.append(self._wrap_tool(name, func, tool_callback))
         return tools
 
-    def _wrap_tool(self, name: str, func: Callable[..., Any]) -> Any:
+    def _wrap_tool(
+        self,
+        name: str,
+        func: Callable[..., Any],
+        tool_callback: Optional[Callable[[str, Any], None]],
+    ) -> Any:
+        def _invoke(*_args: Any, **_kwargs: Any) -> Any:
+            result = func(self.node)
+            if tool_callback is not None:
+                tool_callback(name, result)
+            return result
+
         if lc_tool is None:
-            return {"name": name, "func": func}
-        return lc_tool(name)(lambda node=self.node, f=func: f(node))
+            return {"name": name, "func": _invoke}
+        description = TOOL_DESCRIPTIONS.get(name, f"Tool: {name}")
+        return lc_tool(name, description=description)(_invoke)
 
     def _build_system_prompts(self, prompts: PromptsConfig):
         if RobotSystemPrompts is None:
             raise RuntimeError(
                 "RobotSystemPrompts is unavailable. Install rosa to proceed."
             )
-        return RobotSystemPrompts(
-            embodiment_and_persona=prompts.robot_system_prompts.embodiment_and_persona,
-            critical_instructions=prompts.robot_system_prompts.critical_instructions,
-            relevant_context=prompts.robot_system_prompts.relevant_context,
-            nuance_and_assumptions=prompts.robot_system_prompts.nuance_and_assumptions,
-        )
+        sig = inspect.signature(RobotSystemPrompts)
+        nuance = prompts.robot_system_prompts.nuance_and_assumptions
+        if prompts.bootstrap.enabled and prompts.bootstrap.text.strip():
+            extra = prompts.bootstrap.text.strip()
+            nuance = f"{nuance}\n\n{extra}" if nuance.strip() else extra
+        values = {
+            "embodiment_and_persona": prompts.robot_system_prompts.embodiment_and_persona,
+            "critical_instructions": prompts.robot_system_prompts.critical_instructions,
+            "about_your_environment": prompts.robot_system_prompts.relevant_context,
+            "nuance_and_assumptions": nuance,
+        }
+        kwargs = {key: value for key, value in values.items() if key in sig.parameters}
+        return RobotSystemPrompts(**kwargs)
 
     def _build_system_prompt_text(
         self, prompts: PromptsConfig, system_prompts: Any
@@ -194,7 +229,6 @@ class RosaAgentFactory:
         llm: Any,
         tools: List[Any],
         system_prompts: Any,
-        system_prompt_text: str,
     ) -> Any:
         rosa_cls = getattr(rosa, "ROSA", None)
         if rosa_cls is None:
@@ -202,10 +236,10 @@ class RosaAgentFactory:
         sig = inspect.signature(rosa_cls)
         kwargs = {}
         for key, value in {
+            "ros_version": 2,
             "llm": llm,
             "tools": tools,
-            "system_prompts": system_prompts,
-            "system_prompt": system_prompt_text,
+            "prompts": system_prompts,
         }.items():
             if key in sig.parameters:
                 kwargs[key] = value

@@ -6,8 +6,8 @@ trace:
   events: "/trace/events"
 
 tf:
-  base_frame: "base_link"
-  world_frame: "map"
+  base_frame: "base_footprint"
+  world_frame: "odom"
 
 services:
   capture_and_score:
