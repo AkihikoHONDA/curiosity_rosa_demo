@@ -30,6 +30,7 @@ install(PROGRAMS
   scripts/simulator_node
   scripts/adapter_node
   scripts/agent_node
+  scripts/visualizer_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

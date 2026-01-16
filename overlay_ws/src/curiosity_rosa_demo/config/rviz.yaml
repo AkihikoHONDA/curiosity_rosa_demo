@@ -1,2 +1,11 @@
-fixed_frame: "map"
+fixed_frame: "odom"
 marker_array_topic: "/visualization_marker_array"
+displays:
+  - name: "RobotModel"
+    type: "rviz_default_plugins/RobotModel"
+    enabled: true
+    robot_description: "/robot_description"
+  - name: "TraceMarkers"
+    type: "rviz_default_plugins/MarkerArray"
+    enabled: true
+    topic: "/visualization_marker_array"

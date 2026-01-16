@@ -76,6 +76,25 @@ docker run --rm -it --net=host \
   bash
 ```
 
+If you want GUI apps (RViz) in the same container, start it with X11/WSLg
+passthrough (adjust env paths for your host setup):
+```bash
+docker run --rm -it --net=host \
+  -u $(id -u):$(id -g) \
+  -e OPENAI_API_KEY=YOUR_API_KEY \
+  -e DISPLAY \
+  -e QT_X11_NO_MITSHM=1 \
+  -e XDG_RUNTIME_DIR \
+  -e XAUTHORITY=$XAUTHORITY \
+  -v "$XAUTHORITY:$XAUTHORITY" \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+  -v /run/user:/run/user:ro \
+  -v "$PWD/overlay_ws:/workspace/overlay_ws" \
+  --name curiosity_demo \
+  curiosity_demo_ext \
+  bash
+```
+
 Note: We run containers as the host user (non-root) to avoid root-owned files on
 the host. The extended image sets `ROS_LOG_DIR=/tmp/ros_log` by default. Override
 if needed.
@@ -116,4 +135,23 @@ docker exec -it curiosity_demo bash
 source /opt/ros/*/setup.bash
 source /workspace/overlay_ws/install/setup.bash
 ros2 topic echo /trace/events
+```
+
+Terminal E (visualizer node) - from host:
+```bash
+docker exec -it curiosity_demo bash
+```
+```bash
+source /opt/ros/*/setup.bash
+source /workspace/overlay_ws/install/setup.bash
+ros2 run curiosity_rosa_demo visualizer_node
+```
+
+Terminal F (RViz) - from host:
+```bash
+docker exec -it curiosity_demo bash
+```
+```bash
+source /opt/ros/*/setup.bash
+rviz2 -d /workspace/overlay_ws/install/curiosity_rosa_demo/share/curiosity_rosa_demo/config/rviz.yaml
 ```

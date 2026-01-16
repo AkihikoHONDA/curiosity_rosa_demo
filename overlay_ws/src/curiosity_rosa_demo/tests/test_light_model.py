@@ -48,8 +48,8 @@ def test_simulator_updates_last_score_from_tf(ros_node: SimulatorNode):
 
     transform = TransformStamped()
     transform.header.stamp = node.get_clock().now().to_msg()
-    transform.header.frame_id = "map"
-    transform.child_frame_id = "base_link"
+    transform.header.frame_id = node._world_frame
+    transform.child_frame_id = node._base_frame
     transform.transform.translation.x = 2.5
     transform.transform.translation.y = 0.0
     transform.transform.translation.z = 0.0
@@ -60,7 +60,7 @@ def test_simulator_updates_last_score_from_tf(ros_node: SimulatorNode):
     while time.time() < deadline:
         rclpy.spin_once(node, timeout_sec=0.1)
         if node._tf_buffer.can_transform(
-            "map", "base_link", rclpy.time.Time()
+            node._world_frame, node._base_frame, rclpy.time.Time()
         ):
             break
 
