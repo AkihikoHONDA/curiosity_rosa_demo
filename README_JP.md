@@ -63,13 +63,77 @@ docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_agent.s
 docker compose run --rm curiosity_demo bash -lc "chmod +x /workspace/overlay_ws/scripts/*.sh"
 ```
 
+## 最小スモークテスト（T16）
+デモノード起動後に実行します。
+
+I/F 確認:
+```bash
+ros2 service list | grep -E "capture_and_score|/adapter/"
+ros2 topic list | grep -E "/capture/image_raw|/trace/events"
+```
+
+観測:
+```bash
+ros2 service call /capture_and_score curiosity_rosa_demo/srv/CaptureAndScore "{}"
+```
+
+マスト旋回:
+```bash
+ros2 service call /adapter/mast_rotate std_srvs/srv/Trigger "{}"
+```
+
+移動（必要なら mast_close 後）:
+```bash
+ros2 service call /adapter/mast_close std_srvs/srv/Trigger "{}"
+ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"
+```
+
+排他確認:
+```bash
+ros2 service call /adapter/mast_open std_srvs/srv/Trigger "{}"
+ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"
+# 期待: success=false, message="Need to close mast"
+```
+
+Trace 確認:
+```bash
+ros2 topic echo /trace/events --once
+```
+
+## 成果物の保存（trace/image）
+成果物は `overlay_ws/artifacts` に保存します。
+
+Trace を `overlay_ws/artifacts/trace.jsonl` に保存（Ctrl+C で停止）:
+```bash
+docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/save_trace.sh
+```
+
+キャプチャ画像を1枚保存（PPM）:
+```bash
+docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/save_capture.sh
+```
+
 ## LLM Agent の規定コマンド
 自然言語の指示が可能です。以下は定義済みコンソールコマンドです:
 - `:help` ヘルプ表示
 - `:cap` 1回撮影してスコア判定
-- `:status` ローバー状態表示
+- `:status` ローバー状態表示（`:status llm` で説明）
+- `:nudge` 規定秒数前進
+- `:mast_open` mast open
+- `:mast_close` mast close
+- `:mast_rotate` mast rotate
 - `:demo` デモ用プロンプトを実行
 - `:quit` 終了
+
+LLMに公開しているツール:
+- `capture_and_score`
+- `mast_open`, `mast_close`, `mast_rotate`
+- `move_nudge`（規定秒数前進、デフォルト 10.0 秒。`config/thresholds.yaml` で変更）
+- `get_status`
+
+注記:
+- 初期状態は mast open として扱います。移動前に `mast_close` が必要です。
+- mast が close のとき、`capture_and_score` は `Mast is closed` で失敗します。
 
 ## 手動起動（docker run）
 単一のデモコンテナを起動します（追加ターミナルは `docker exec` を使用）:
@@ -133,6 +197,13 @@ rviz2 -d /workspace/overlay_ws/install/curiosity_rosa_demo/share/curiosity_rosa_
 ```
 
 注記: `/capture/image_raw` は Reliable QoS で配信されるため、RViz のデフォルト設定で表示できます。
+
+## トラブルシュート
+- service が見えない: デモコンテナ起動と `source /opt/ros/*/setup.bash`、`source /workspace/overlay_ws/install/setup.bash` を確認
+- TF が取れない: Curiosity デモが起動していて `/tf` が流れているか確認
+- 画像が出ない: `/capture_and_score` を呼んで撮影をトリガー（`debug:=true` 未設定時）
+- RViz が表示されない: X11/WSLg の設定（`DISPLAY`, `/tmp/.X11-unix`）と RViz 環境変数（`XDG_RUNTIME_DIR`, `RVIZ_CONFIG_DIR`）を確認
+- LLM キー未設定: `OPENAI_API_KEY` を設定し `/opt/rosa_venv/bin/activate` を実行
 
 ## テスト
 テストには OpenCV と ROSA venv が必要なので、拡張イメージで pytest を実行します:

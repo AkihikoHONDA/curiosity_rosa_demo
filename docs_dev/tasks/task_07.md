@@ -20,7 +20,7 @@
 
 - [ ] Simulator Node が当該serviceを提供し、呼び出し時点の「直近観測」を返すこと。
   - `score/is_good` は `last_score`（T05）から取得
-  - `image_topic` は加工済み画像のトピック（`topics.images.output_capture_compressed`）を返す
+  - `image_topic` は加工済み画像のトピック（`topics.images.output_capture_raw`）を返す
   - `stamp` は返答時刻で良い（画像時刻と厳密一致させない）
 
 - [ ] 観測不能時の挙動を仕様化し、実装とテストで固定すること。

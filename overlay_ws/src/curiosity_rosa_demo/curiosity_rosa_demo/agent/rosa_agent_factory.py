@@ -31,10 +31,7 @@ TOOL_NAMES = [
     "mast_open",
     "mast_close",
     "mast_rotate",
-    "move_forward",
-    "turn_left",
-    "turn_right",
-    "move_stop",
+    "move_nudge",
     "get_status",
 ]
 
@@ -43,10 +40,7 @@ TOOL_DESCRIPTIONS = {
     "mast_open": "Open the rover mast for observation.",
     "mast_close": "Close the rover mast for movement.",
     "mast_rotate": "Rotate the mast to change camera direction.",
-    "move_forward": "Move the rover forward briefly.",
-    "turn_left": "Turn the rover left briefly.",
-    "turn_right": "Turn the rover right briefly.",
-    "move_stop": "Stop rover movement.",
+    "move_nudge": "Move the rover forward for a short, fixed duration.",
     "get_status": "Get current rover status summary.",
 }
 
@@ -160,10 +154,7 @@ class RosaAgentFactory:
             "mast_open": tool_impl.mast_open,
             "mast_close": tool_impl.mast_close,
             "mast_rotate": tool_impl.mast_rotate,
-            "move_forward": tool_impl.move_forward,
-            "turn_left": tool_impl.turn_left,
-            "turn_right": tool_impl.turn_right,
-            "move_stop": tool_impl.move_stop,
+            "move_nudge": tool_impl.move_nudge,
             "get_status": tool_impl.get_status,
         }
 

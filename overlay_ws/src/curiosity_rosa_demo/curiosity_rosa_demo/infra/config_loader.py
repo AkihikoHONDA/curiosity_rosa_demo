@@ -83,6 +83,7 @@ class ThresholdsConfig:
     trace_buffer_size: Optional[int]
     viz_bright_zone_x_min: Optional[float]
     viz_bright_zone_x_max: Optional[float]
+    move_nudge_duration_sec: float
 
 
 @dataclass(frozen=True)
@@ -259,6 +260,13 @@ def load_thresholds_config(path: Path) -> ThresholdsConfig:
     trace_buffer_size = _optional_int(data, "trace", "buffer_size", path)
     viz_min = _optional_number(data, "viz", "bright_zone_x_min", path)
     viz_max = _optional_number(data, "viz", "bright_zone_x_max", path)
+    move_nudge_duration = _optional_number(data, "move", "nudge_duration_sec", path)
+    if move_nudge_duration is None:
+        move_nudge_duration = 10.0
+    if move_nudge_duration <= 0.0:
+        raise ValueError(
+            f"{path}: move.nudge_duration_sec must be greater than 0"
+        )
 
     return ThresholdsConfig(
         light_model_x_min=x_min,
@@ -267,6 +275,7 @@ def load_thresholds_config(path: Path) -> ThresholdsConfig:
         trace_buffer_size=trace_buffer_size,
         viz_bright_zone_x_min=viz_min,
         viz_bright_zone_x_max=viz_max,
+        move_nudge_duration_sec=move_nudge_duration,
     )
 
 

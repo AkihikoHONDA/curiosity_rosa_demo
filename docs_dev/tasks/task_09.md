@@ -1,4 +1,4 @@
-# T09: Tool実装（ROSA向けtools群）：capture_and_score / mast_* / move_* / move_stop / get_status【更新版】
+# T09: Tool実装（ROSA向けtools群）：capture_and_score / mast_* / move_nudge / get_status【更新版】
 
 ## 背景
 エージェント（ROSA）は「自然言語→Tool呼び出し→結果観測」を繰り返して意思決定する。
@@ -9,7 +9,7 @@ Tool層は「失敗理由の統一」と「コスト提示（ソフト誘導）�
 - [ ] `curiosity_rosa_demo/tools/` を作成し、以下の Tool 群を実装すること（名称は設計・promptsのツール一覧に合わせる）。
   - 観測: `capture_and_score()`
   - マスト: `mast_open()`, `mast_close()`, `mast_rotate()`
-  - 移動: `move_forward()`, `turn_left()`, `turn_right()`, `move_stop()`
+  - 移動: `move_nudge()`
   - 状態: `get_status()`
 
 - [ ] 各Toolは service 呼び出しを行い、結果を `ToolResult` で返すこと。

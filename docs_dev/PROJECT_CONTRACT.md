@@ -80,8 +80,8 @@ Codex（エージェント）は、実装中に“良かれ改善”でここに
   - 観測不能（画像未受信・TF未解決等）は **疑似値で誤魔化さず** `ok=false` と `error_reason` で返す
 
 ### 3.5 画像トピック（加工済み）
-- トピック名：`/capture/image_raw/compressed`
-- メッセージ型：`sensor_msgs/msg/CompressedImage`
+- トピック名：`/capture/image_raw`
+- メッセージ型：`sensor_msgs/msg/Image`
 
 ### 3.6 Trace 出力
 - トピック名：`/trace/events`

@@ -9,7 +9,7 @@
   画像入力：`/image_raw/compressed`
 
 - 本プロジェクトの公開I/F：
-  加工済み画像：`/capture/image_raw/compressed`
+  加工済み画像：`/capture/image_raw`
   Adapter公開Service：`/adapter/*`（std_srvs/srv/Trigger）
   観測Service：`/capture_and_score`（curiosity_rosa_demo/srv/CaptureAndScore）
 
@@ -25,10 +25,10 @@
 | T03 | ドメインモデル（ToolResult/TraceEvent等）＋JSONシリアライズ規約を実装 | 4 | T01 | S |
 | T04 | ROS I/Oユーティリティ（Service呼び出し：Empty/Trigger、Publisher/Subscriber、TF参照の最小ヘルパ）を実装 | 5.2, 5.3, 6 | T01, T03 | M |
 | T05 | Simulator: 明るさモデル（tf→X推定→score算出、閾値判定、内部状態保持）を実装 | 5.2, 4.1, 7.1 | T02, T03, T04 | M |
-| T06 | Simulator: 画像処理パイプライン（/image_raw/compressed購読、暗化＋スコア文字入れ、/capture/image_raw/compressedへ再Publish）を実装 | 5.2, 6.1 | T05, T04, T02 | M |
+| T06 | Simulator: 画像処理パイプライン（/image_raw/compressed購読、暗化＋スコア文字入れ、/capture/image_rawへ再Publish）を実装 | 5.2, 6.1 | T05, T04, T02 | M |
 | T07 | CaptureAndScore.srv定義＋Simulator側サービス実装（観測不能はok=false/error_reasonで返す） | 4.2, 6.2 | T06, T03 | M |
 | T08 | Adapter Node: Curiosity既存Service（Empty）ラップ＋排他制御（Need to close mast統一）、公開I/Fは /adapter/*（Trigger） | 5.3, 6.3, 8.1 | T02, T03, T04 | M |
-| T09 | Tool実装（ROSA向けtools群）：capture_and_score / mast_* / move_* / move_stop / get_status（ToolResult統一、cost表示の土台） | 5.1, 5.3, 7.3 | T07, T08, T03, T02, T04 | M |
+| T09 | Tool実装（ROSA向けtools群）：capture_and_score / mast_* / move_nudge / get_status（ToolResult統一、cost表示の土台） | 5.1, 5.3, 7.3 | T07, T08, T03, T02, T04 | M |
 | T10 | ROSA統合（RosaAgentFactory、RobotSystemPrompts注入、tools登録、最小メモリ実装の足場） | 2.2, 5.1 | T09, T03, T02 | M |
 | T12 | Trace基盤：/trace/events 形式の確定（codec/buffer、堅牢decode） | 4.1, 6.1 | T03 | S |
 | T11 | Console/Agent Node: stdin入力（テンプレ/ショートカット含む）→ROSA実行→Trace publish の1ターンループを実装 | 5.1, 0.2, 6.1 | T10, T09, T12, T03, T02 | M |

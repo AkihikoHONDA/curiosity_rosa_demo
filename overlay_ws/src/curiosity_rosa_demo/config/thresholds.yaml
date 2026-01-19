@@ -11,3 +11,6 @@ trace:
 viz:
   bright_zone_x_min: 5.0
   bright_zone_x_max: 10.0
+
+move:
+  nudge_duration_sec: 10.0

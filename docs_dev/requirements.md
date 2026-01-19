@@ -138,14 +138,14 @@ classDiagram
 ### 3.1 機能要件（FR）
 
 FR-001: 固定プロンプト「地面のテクスチャを調査して」を入力として受け付け、エージェント行動を開始できること。  
-FR-002: 画像入力 `/image_raw/compressed` を受け、暗さ加工＋スコア焼き込み（またはログへの確実な記録）を行い、静止画像として `/capture/image_raw/compressed` に再パブリッシュできること。  
+FR-002: 画像入力 `/image_raw/compressed` を受け、暗さ加工＋スコア焼き込み（またはログへの確実な記録）を行い、静止画像として `/capture/image_raw` に再パブリッシュできること。mast が close の場合は `capture_and_score` が失敗すること。  
 FR-003: 明るさスコアは TF 上の X 座標に基づき算出し、明るい領域（X範囲）や合格閾値は設定ファイルで変更可能であること。  
 FR-004: 画質判定は明るさスコアのみを用い、閾値以上で「成功」と判定できること。  
 
 FR-005: エージェントに提供するツールとして、少なくとも以下を実装すること。
 - 撮影＋品質判定（CaptureAndScore: スコア・合否・画像トピックを返す）
 - マスト操作（`/mast_open`・`/mast_close`・`/mast_rotate` のラップ）
-- 移動操作（`/move_forward`・`/turn_left`・`/turn_right`・`/move_stop` のラップ）
+- 移動操作（`move_nudge`: `/adapter/move_forward` を用いた規定秒数前進）
 - 状態取得（マスト状態、移動可否、直近スコア、直近エラー等）
 - 撮影＋品質判定（CaptureAndScore: スコア・合否・画像トピックに加え、観測不能時は ok=false と error_reason を返す）
 
@@ -278,7 +278,7 @@ repo_root/
 | TRACE_VIZ_v1             | overlay_ws/src/curiosity_rosa_demo/curiosity_rosa_demo/trace/* / viz/* | Traceのcodec/bufferと、RViz MarkerArray可視化が成立する                                                    |
 | LAUNCH_DEMO_v1           | overlay_ws/src/curiosity_rosa_demo/launch/demo.launch.py               | 主要ノード群を一括起動できる                                                                                  |
 | SCRIPTS_v1               | overlay_ws/scripts/build_overlay.sh, overlay_ws/scripts/run_demo.sh    | ビルドと起動の補助スクリプトが整備されている                                                                          |
-| DEMO_ARTIFACTS_v1        | artifacts/（任意）                                                         | 成功画像（capture）とTraceログ（jsonl等）が保存される                                                             |
+| DEMO_ARTIFACTS_v1        | overlay_ws/artifacts/（任意）                                              | 成功画像（capture）とTraceログ（jsonl等）が保存される                                                             |
 
 ---
 

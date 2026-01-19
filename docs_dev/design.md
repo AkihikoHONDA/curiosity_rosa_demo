@@ -54,8 +54,9 @@ Curiosityデモ既存I/F（走行・マスト）は以下が“正”である�
 
 - Environment Simulator Node
   - `/tf` からローバの X 座標を推定し、明るさスコア（0.0〜1.0）を算出する
-  - `/image_raw/compressed` を購読し、暗化加工＋スコアオーバレイ済み画像を `/capture/image_raw/compressed` に再送する
+  - `/image_raw/compressed` を購読し、暗化加工＋スコアオーバレイ済み画像を `/capture/image_raw` に再送する
   - 観測を 1 回の操作にするための `CaptureAndScore` Service を提供する（`/capture_and_score`）
+  - mast が close の場合、`capture_and_score` は失敗（`Mast is closed`）を返す
 
 - Curiosity Adapter Node
   - Curiosityデモ既存Service（Empty）をラップし、エージェント向けの統一I/Fを提供する
@@ -73,7 +74,7 @@ flowchart LR
   AG -->| "capture tool" | SIM["Environment Simulator Node"]
 
   SIM -->| "subscribe" | IMG["/image_raw/compressed"]
-  SIM -->| "publish" | CAP["/capture/image_raw/compressed"]
+  SIM -->| "publish" | CAP["/capture/image_raw"]
   SIM -->| "lookup" | TF["/tf"]
 
   ADP -->| "call existing" | CUR["Curiosity Demo Nodes"]
@@ -217,7 +218,7 @@ repo_root/
 
   * `score: float`
   * `is_good: bool`
-  * `image_topic: str`（通常 `/capture/image_raw/compressed`）
+  * `image_topic: str`（通常 `/capture/image_raw`）
   * `stamp: builtin_interfaces/Time`
 
 * ToolResult（統一）
@@ -296,7 +297,7 @@ TraceEvent を `/trace/events` に publish する。
 ### 責務
 
 `/tf` から X を取得し、明るさスコアを算出する。
-`/image_raw/compressed` を購読し、暗化＋スコア焼き込み画像を `/capture/image_raw/compressed` に publish する。
+`/image_raw/compressed` を購読し、暗化＋スコア焼き込み画像を `/capture/image_raw` に publish する。
 観測を一回化する Service `/capture_and_score` を提供する。
 
 ### 内部ロジック（最小）
@@ -338,6 +339,7 @@ Triggerの `success/message` を以下に対応させる。
 
 * `mast_is_open: bool`
 
+  * 初期状態は open
   * mast_open成功 → true
   * mast_close成功 → false
   * mast_rotate成功 → true を維持（展開状態のまま）
@@ -374,7 +376,7 @@ Trace JSON が壊れていても落ちない。TFが取れなくても落ちな�
 
 * 出力画像（本プロジェクト）
 
-  * publish: `/capture/image_raw/compressed`（`sensor_msgs/msg/CompressedImage`）
+  * publish: `/capture/image_raw`（`sensor_msgs/msg/Image`）
 
 * Trace（本プロジェクト）
 
@@ -443,6 +445,9 @@ trace:
 viz:
   bright_zone_x_min: 5.0   # デフォルトは x_good と同値にする運用
   bright_zone_x_max: 10.0  # 表示用（シミュレーション上の無限をRVizで表せないため）
+
+move:
+  nudge_duration_sec: 10.0  # move_nudge の前進時間（秒）
 ```
 
 ### 7.2 `config/topics.yaml`（例：curiosity実体と公開I/Fを分離）
@@ -450,7 +455,7 @@ viz:
 ```yaml
 images:
   input_compressed: "/image_raw/compressed"
-  output_capture_compressed: "/capture/image_raw/compressed"
+  output_capture_raw: "/capture/image_raw"
 
 trace:
   events: "/trace/events"
@@ -501,10 +506,7 @@ tools:
   mast_rotate: 2
   mast_open: 2
   mast_close: 2
-  move_forward: 5
-  turn_left: 2
-  turn_right: 2
-  move_stop: 1
+  move_nudge: 5
   get_status: 1
 ```
 

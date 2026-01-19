@@ -24,7 +24,7 @@
 
   topics.yaml（必須）
   - `images.input_compressed`
-  - `images.output_capture_compressed`
+  - `images.output_capture_raw`
   - `trace.events`
   - `tf.world_frame`, `tf.base_frame`
   - `services.capture_and_score.name`（型も持つなら `type`）
@@ -73,7 +73,7 @@
 
 - 実装メモ
   設定値は辞書のまま下流へ渡さず、参照点を固定する。
-  例として、下流は `cfg.topics.images.output_capture_compressed` のように参照できることを正とする。
+  例として、下流は `cfg.topics.images.output_capture_raw` のように参照できることを正とする。
 
 ## 前提条件
 - 完了しておくべきタスク:

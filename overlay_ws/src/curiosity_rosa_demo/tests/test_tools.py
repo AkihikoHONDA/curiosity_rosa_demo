@@ -49,7 +49,7 @@ def test_trigger_tools_and_status(tool_node: Node):
 
     def _make_handler(name: str):
         def _handle(_request, response):
-            if name == "move_forward":
+            if name == "move_nudge":
                 response.success = False
                 response.message = "Need to close mast"
                 return response
@@ -63,14 +63,15 @@ def test_trigger_tools_and_status(tool_node: Node):
         return _handle
 
     _create_trigger_service(tool_node, "/adapter/mast_open", _make_handler("mast_open"))
-    _create_trigger_service(tool_node, "/adapter/move_forward", _make_handler("move_forward"))
+    _create_trigger_service(tool_node, "/adapter/move_forward", _make_handler("move_nudge"))
+    _create_trigger_service(tool_node, "/adapter/move_stop", _make_handler("move_stop"))
     _create_trigger_service(tool_node, "/adapter/get_status", _make_handler("get_status"))
 
     result = tool_impl.mast_open(tool_node, config_dir=_config_dir())
     assert result.ok is True
     assert result.data["cost"] == 2
 
-    result = tool_impl.move_forward(tool_node, config_dir=_config_dir())
+    result = tool_impl.move_nudge(tool_node, config_dir=_config_dir())
     assert result.ok is False
     assert result.error_reason == "Need to close mast"
     assert result.data["cost"] == 5

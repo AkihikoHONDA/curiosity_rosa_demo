@@ -59,7 +59,7 @@ AIには以下の「機能」のみを与え、組み合わせ方は教えない
 - **Visualizer (Rviz)**:
     - ロボットの内部状態（思考・スキャン結果）と、正解エリア（緑色のゾーン）を可視化する。
 
-- Curiosityローバーデモに実装されている、move_forward, stop, mast_open, mast_closeなどをラップしてLLMが使える道具とするラッパー
+- Curiosityローバーデモに実装されている、move_forward（nudge）, mast_open, mast_close などをラップしてLLMが使える道具とするラッパー
 
 #### 6. 実行環境要件（Execution Environment） 
 

@@ -1,15 +1,15 @@
-# T06: Simulator: 画像処理パイプライン（/image_raw/compressed購読、暗化＋スコア文字入れ、/capture/image_raw/compressedへ再Publish）【更新版】
+# T06: Simulator: 画像処理パイプライン（/image_raw/compressed購読、暗化＋スコア文字入れ、/capture/image_rawへ再Publish）【更新版】
 
 ## 背景
 本デモでは「暗い／明るい」をエージェントが視覚的にも理解できるよう、Curiosityデモのカメラ画像を Simulator 側で加工し、暗いときは暗化しつつスコアを重畳表示して加工済み画像として再配信する。
-加工済み画像の出力先は `/capture/image_raw/compressed` を正とする。
+加工済み画像の出力先は `/capture/image_raw` を正とする。
 
 この処理が安定すると、後続の `CaptureAndScore`（T07）が「画像とスコアが整合した観測結果」を返せるようになり、Agent側のデバッグも容易になる。
 
 ## 目的 / 完了条件 (DoD)
 - [ ] Simulator Node に画像購読・加工・再Publish を実装すること。
   - [ ] 入力購読: `topics.images.input_compressed`（例: `/image_raw/compressed`）
-  - [ ] 出力Publish: `topics.images.output_capture_compressed`（例: `/capture/image_raw/compressed`）
+  - [ ] 出力Publish: `topics.images.output_capture_raw`（例: `/capture/image_raw`）
 
 - [ ] 画像加工仕様（最小でよいが、デモとして意味が伝わること）。
   - [ ] `last_score`（T05）に基づき暗化係数を適用できる（暗いほど暗くする）
@@ -23,7 +23,7 @@
 
 - [ ] テスト併走。
   - [ ] ユニットテスト: 「暗化＋文字入れ」関数を純関数として切り出し、出力サイズ維持、暗化強化で平均輝度が下がることを確認する
-  - [ ] 小粒度統合（任意）: CompressedImage を投入すると `/capture/image_raw/compressed` に CompressedImage が出る
+  - [ ] 小粒度統合（任意）: CompressedImage を投入すると `/capture/image_raw` に Image が出る
   rclpy統合が難しければ、関数テスト＋手動スモーク手順をDoDに含める。
 
 - [ ] 作成・修正ファイル。

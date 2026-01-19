@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import threading
 import time
@@ -116,10 +117,24 @@ class AgentConsoleNode(Node):
                 if command == "quit":
                     break
                 if command == "status":
-                    self._run_tool("get_status", tool_impl.get_status)
+                    result = self._run_tool("get_status", tool_impl.get_status)
+                    if result is not None:
+                        self._maybe_explain_status(result, args)
                     continue
                 if command == "cap":
                     self._run_tool("capture_and_score", tool_impl.capture_and_score)
+                    continue
+                if command == "nudge":
+                    self._run_tool("move_nudge", tool_impl.move_nudge)
+                    continue
+                if command == "mast_open":
+                    self._run_tool("mast_open", tool_impl.mast_open)
+                    continue
+                if command == "mast_close":
+                    self._run_tool("mast_close", tool_impl.mast_close)
+                    continue
+                if command == "mast_rotate":
+                    self._run_tool("mast_rotate", tool_impl.mast_rotate)
                     continue
                 if command == "demo":
                     demo_text = resolve_demo_text(
@@ -151,15 +166,30 @@ class AgentConsoleNode(Node):
             for line in summaries:
                 print(f"  {line}")
 
-    def _run_tool(self, tool_name: str, func: Any) -> None:
+    def _run_tool(self, tool_name: str, func: Any) -> Optional[ToolResult]:
         result = func(self)
         if not isinstance(result, ToolResult):
             print(f"{tool_name}: unexpected result type")
-            return
+            return None
         event = build_tool_trace_event(tool_name, result)
         self._publish_event(event)
         summary = summarize_tool_result(tool_name, result)
         print(f"Tool: {summary}")
+        return result
+
+    def _maybe_explain_status(self, result: ToolResult, args: str) -> None:
+        if not result.data:
+            return
+        status_text = json.dumps(result.data, ensure_ascii=False)
+        print(f"Status: {status_text}")
+        if args.lower() != "llm":
+            return
+        prompt = (
+            "Explain the rover status in plain language. "
+            "Do not call any tools. Use only this JSON:\n"
+            f"{status_text}"
+        )
+        self._run_prompt(prompt)
 
     def _on_tool_result(self, tool_name: str, result: Any) -> None:
         if not isinstance(result, ToolResult):

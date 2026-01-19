@@ -23,7 +23,7 @@ def test_trace_buffer_as_lines_includes_fields():
         ts=4.0,
         kind="ACT",
         message="move",
-        tool_name="move_forward",
+        tool_name="move_nudge",
         ok=True,
         score=0.12,
     )
@@ -32,6 +32,6 @@ def test_trace_buffer_as_lines_includes_fields():
     assert len(lines) == 1
     line = lines[0]
     assert "[ACT]" in line
-    assert "move_forward" in line
+    assert "move_nudge" in line
     assert "ok=true" in line
     assert "score=0.12" in line

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -22,6 +23,7 @@ class ToolContext:
         configs = load_all_configs(config_dir=config_dir, node=node)
         self.topics = configs.topics
         self.tool_costs = configs.tool_costs.tools
+        self.thresholds = configs.thresholds
 
     def cost_for(self, tool_name: str) -> int:
         return int(self.tool_costs.get(tool_name, 0))
@@ -113,6 +115,24 @@ def mast_close(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
 def mast_rotate(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
     ctx = ToolContext(node, config_dir=config_dir)
     return _call_trigger_tool(ctx, "mast_rotate", ctx.topics.adapter.mast_rotate.name)
+
+
+def move_nudge(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
+    ctx = ToolContext(node, config_dir=config_dir)
+    cost = ctx.cost_for("move_nudge")
+    forward = call_trigger_service(
+        ctx.node, ctx.topics.adapter.move_forward.name, timeout_sec=1.0
+    )
+    if not forward.ok:
+        return _with_cost(forward, cost)
+    duration = float(ctx.thresholds.move_nudge_duration_sec)
+    time.sleep(duration)
+    stop = call_trigger_service(
+        ctx.node, ctx.topics.adapter.move_stop.name, timeout_sec=1.0
+    )
+    if not stop.ok:
+        return _with_cost(stop, cost)
+    return ToolResult(ok=True, data={"duration_sec": duration, "cost": cost})
 
 
 def move_forward(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:

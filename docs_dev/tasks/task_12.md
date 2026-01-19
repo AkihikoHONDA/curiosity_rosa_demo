@@ -36,7 +36,7 @@ T11で最低限 publish はできますが、ここで「イベント種別」�
     - `append(self, ev: TraceEvent) -> None`
     - `latest(self, n: int) -> list[TraceEvent]`
     - `as_lines(self, n: int) -> list[str]`
-      - 例: `"[ACT] move_forward ok=true"`, `"[RESULT] score=0.12 BAD"` 等
+      - 例: `"[ACT] move_nudge ok=true"`, `"[RESULT] score=0.12 BAD"` 等
   - `encode_event(ev: TraceEvent) -> str`
     - `json.dumps(ev.to_dict(), ensure_ascii=False)`
   - `decode_event(s: str) -> TraceEvent`

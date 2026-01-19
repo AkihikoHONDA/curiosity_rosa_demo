@@ -62,6 +62,9 @@ light_model:
 
 quality:
   score_threshold: 0.8
+
+move:
+  nudge_duration_sec: 10.0
 """,
     )
     _write_yaml(
@@ -186,6 +189,9 @@ light_model:
 
 quality:
   score_threshold: 1.5
+
+move:
+  nudge_duration_sec: 10.0
 """,
     )
 

@@ -24,7 +24,7 @@ class AdapterNode(Node):
         configs = load_all_configs(config_dir=config_dir, node=self)
         self._topics = configs.topics
 
-        self.mast_is_open = False
+        self.mast_is_open = True
         self.last_error_reason: Optional[str] = None
         self._callback_group = ReentrantCallbackGroup()
 
