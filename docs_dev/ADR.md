@@ -88,7 +88,8 @@ failures. The package also needs Python modules to be installed for runtime.
 
 ### Decision
 Install the Python package directory via CMake and provide explicit executable
-scripts under `scripts/`, installing them into `lib/<package>`.
+scripts under `overlay_ws/src/curiosity_rosa_demo/scripts/`, installing them into
+`lib/<package>`.
 
 ### Consequences
 - `ros2 run curiosity_rosa_demo <node>` works without `setup.py` entry points.

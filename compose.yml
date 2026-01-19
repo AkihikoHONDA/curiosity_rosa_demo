@@ -1,0 +1,16 @@
+services:
+  curiosity_demo:
+    image: curiosity_demo_ext
+    network_mode: host
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+      - XDG_RUNTIME_DIR=/tmp/xdg_runtime
+      - RVIZ_CONFIG_DIR=/tmp/rviz2
+      - XAUTHORITY=${XAUTHORITY}
+    volumes:
+      - ${XAUTHORITY}:${XAUTHORITY}
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./overlay_ws:/workspace/overlay_ws

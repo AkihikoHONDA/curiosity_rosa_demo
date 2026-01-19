@@ -127,9 +127,10 @@ repo_root/
   .gitignore
 
   docker/                     # 任意（依存を焼き込む場合）
-  scripts/                    # build/run補助（任意）
-
   overlay_ws/
+    scripts/                  # build/run補助（任意）
+      build_overlay.sh
+      run_demo.sh
     src/
       curiosity_rosa_demo/
         package.xml

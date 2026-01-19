@@ -84,8 +84,9 @@ artifacts/
 # Docker / Compose
 # (Uncomment if you use secrets in .env locally)
 # ------------------------------------------------------------
-# .env
-# .env.*
+.env
+.env.*
+!.env.example
 
 # ------------------------------------------------------------
 # Tool-specific caches (optional)

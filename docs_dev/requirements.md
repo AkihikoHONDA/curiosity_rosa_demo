@@ -202,6 +202,9 @@ repo_root/
   README.md
   .gitignore
   overlay_ws/
+    scripts/
+      build_overlay.sh
+      run_demo.sh
     src/
       curiosity_rosa_demo/
         package.xml
@@ -230,9 +233,6 @@ repo_root/
           trace/
           viz/
         tests/
-  scripts/
-    build_overlay.sh
-    run_demo.sh
 
 ### 4.4 APIキー秘匿の方針
 - APIキーは環境変数（例：`OPENAI_API_KEY`）として注入する。
@@ -277,7 +277,7 @@ repo_root/
 | AGENT_NODE_v1            | overlay_ws/src/curiosity_rosa_demo/curiosity_rosa_demo/agent/*         | prompts注入＋tools登録で実行でき、Traceをpublishできる                                                         |
 | TRACE_VIZ_v1             | overlay_ws/src/curiosity_rosa_demo/curiosity_rosa_demo/trace/* / viz/* | Traceのcodec/bufferと、RViz MarkerArray可視化が成立する                                                    |
 | LAUNCH_DEMO_v1           | overlay_ws/src/curiosity_rosa_demo/launch/demo.launch.py               | 主要ノード群を一括起動できる                                                                                  |
-| SCRIPTS_v1               | scripts/build_overlay.sh, scripts/run_demo.sh                          | ビルドと起動の補助スクリプトが整備されている                                                                          |
+| SCRIPTS_v1               | overlay_ws/scripts/build_overlay.sh, overlay_ws/scripts/run_demo.sh    | ビルドと起動の補助スクリプトが整備されている                                                                          |
 | DEMO_ARTIFACTS_v1        | artifacts/（任意）                                                         | 成功画像（capture）とTraceログ（jsonl等）が保存される                                                             |
 
 ---

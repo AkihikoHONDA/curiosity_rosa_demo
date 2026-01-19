@@ -2,7 +2,7 @@
 
 ## 背景
 本デモは Space ROS demos（Curiosity）公式Dockerイメージ上で動かしつつ、実装物はホスト側リポジトリを bind mount してコンテナに取り込む方針です（design.md「2.3 コンテナとワークスペースの境界」「3. ディレクトリ構成」）。  
-また、requirements.md「4.3 ディレクトリ構造案」「6. 成果物インベントリ」により、最低限の起動導線（README、config、launch、scripts/run）が先に揃っていることが、後続タスクの前提になります。
+また、requirements.md「4.3 ディレクトリ構造案」「6. 成果物インベントリ」により、最低限の起動導線（README、config、launch、overlay_ws/scripts/run）が先に揃っていることが、後続タスクの前提になります。
 
 このタスクでは、後続の Simulator / Adapter / Agent / Visualizer を「追加していける状態」にするため、リポジトリの骨格と、colcon で通る最小パッケージを確立します。
 

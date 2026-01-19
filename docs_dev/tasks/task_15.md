@@ -11,8 +11,8 @@
   - [ ] `docker compose`（推奨）または `docker run` のどちらかで、確実に再現できる手順をREADMEに記載
   - [ ] 少なくとも `overlay_ws/` がコンテナ内で見える（書き込み可能）
 - [ ] overlay_ws のビルド導線を固定する:
-  - [ ] 例: `./scripts/build_overlay.sh`（コンテナ内で実行）で `colcon build` が通る
-  - [ ] 例: `./scripts/run_demo.sh` で `source` → `ros2 launch ...` が実行される
+  - [ ] 例: `./overlay_ws/scripts/build_overlay.sh`（コンテナ内で実行）で `colcon build` が通る
+  - [ ] 例: `./overlay_ws/scripts/run_demo.sh` で `source` → `ros2 launch ...` が実行される
 - [ ] 依存（Pythonライブラリやaptパッケージ）が不足する場合の扱いを決める:
   - 方針A: 公式イメージに対し、派生Dockerfileを1枚用意し `opencv` 等を追加する
   - 方針B: 起動後に `apt install` / `pip install` する（再現性が落ちるため、可能ならAを推奨）
@@ -23,8 +23,8 @@
 - [ ] 作成・修正ファイル:
   - `docker/`（任意：派生Dockerfile置き場）
   - `compose.yml` または `docker-compose.yml`（推奨：override含む）
-  - `scripts/build_overlay.sh`（新規）
-  - `scripts/run_demo.sh`（新規）
+- `overlay_ws/scripts/build_overlay.sh`（新規）
+- `overlay_ws/scripts/run_demo.sh`（新規）
   - `README.md`（環境セットアップ、起動、トラブルシュート）
 
 ## 実装詳細
@@ -32,11 +32,11 @@
   1) `compose.yml` を用意し、公式イメージを `image:` で参照  
      - `volumes:` でリポジトリを `/work/curiosity_rosa_demo` に mount
      - 必要なら `network_mode: host`（ROS2通信の都合）や X11/Wayland（RViz）設定を加える
-  2) `scripts/build_overlay.sh` で:
+  2) `overlay_ws/scripts/build_overlay.sh` で:
      - `cd /work/curiosity_rosa_demo/overlay_ws`
      - `source /opt/ros/<distro>/setup.bash`（Space ROSの構成に合わせる）
      - `colcon build --symlink-install`
-  3) `scripts/run_demo.sh` で:
+  3) `overlay_ws/scripts/run_demo.sh` で:
      - `source /work/curiosity_rosa_demo/overlay_ws/install/setup.bash`
      - `ros2 launch curiosity_rosa_demo demo.launch.py`（T14）
 - 参照すべき設計
