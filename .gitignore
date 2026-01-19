@@ -94,3 +94,4 @@ artifacts/
 .codex/
 .aider*
 overlay_ws/src/curiosity_rosa_demo/config/llm.yaml
+example/

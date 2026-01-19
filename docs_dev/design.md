@@ -434,7 +434,7 @@ Curiosity Rover デモが提供する主要I/Fは `std_srvs/srv/Empty` の Servi
 ```yaml
 light_model:
   x_min: 0.0
-  x_good: 5.0         # ここ以降 score=1.0
+  x_good: 2.5         # ここ以降 score=1.0
 
 quality:
   score_threshold: 0.8
@@ -447,7 +447,7 @@ viz:
   bright_zone_x_max: 10.0  # 表示用（シミュレーション上の無限をRVizで表せないため）
 
 move:
-  nudge_duration_sec: 10.0  # move_nudge の前進時間（秒）
+  nudge_duration_sec: 20.0  # move_nudge の前進時間（秒）
 ```
 
 ### 7.2 `config/topics.yaml`（例：curiosity実体と公開I/Fを分離）

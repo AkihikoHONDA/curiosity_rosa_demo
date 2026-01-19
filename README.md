@@ -128,7 +128,7 @@ You can give natural language instructions. These are the predefined console com
 LLM tools exposed to the agent:
 - `capture_and_score`
 - `mast_open`, `mast_close`, `mast_rotate`
-- `move_nudge` (forward for a short, fixed duration; default 10.0s in `config/thresholds.yaml`)
+- `move_nudge` (forward for a short, fixed duration; default 20.0s in `config/thresholds.yaml`)
 - `get_status`
 
 Notes:

@@ -262,7 +262,7 @@ def load_thresholds_config(path: Path) -> ThresholdsConfig:
     viz_max = _optional_number(data, "viz", "bright_zone_x_max", path)
     move_nudge_duration = _optional_number(data, "move", "nudge_duration_sec", path)
     if move_nudge_duration is None:
-        move_nudge_duration = 10.0
+        move_nudge_duration = 20.0
     if move_nudge_duration <= 0.0:
         raise ValueError(
             f"{path}: move.nudge_duration_sec must be greater than 0"

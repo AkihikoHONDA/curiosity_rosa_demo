@@ -128,7 +128,7 @@ docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/save_captur
 LLMに公開しているツール:
 - `capture_and_score`
 - `mast_open`, `mast_close`, `mast_rotate`
-- `move_nudge`（規定秒数前進、デフォルト 10.0 秒。`config/thresholds.yaml` で変更）
+- `move_nudge`（規定秒数前進、デフォルト 20.0 秒。`config/thresholds.yaml` で変更）
 - `get_status`
 
 注記:

@@ -58,13 +58,13 @@ viz:
         """
 light_model:
   x_min: 0.0
-  x_good: 5.0
+  x_good: 2.5
 
 quality:
   score_threshold: 0.8
 
 move:
-  nudge_duration_sec: 10.0
+  nudge_duration_sec: 20.0
 """,
     )
     _write_yaml(
@@ -185,13 +185,13 @@ def test_score_threshold_range_raises(tmp_path: Path) -> None:
         """
 light_model:
   x_min: 0.0
-  x_good: 5.0
+  x_good: 2.5
 
 quality:
   score_threshold: 1.5
 
 move:
-  nudge_duration_sec: 10.0
+  nudge_duration_sec: 20.0
 """,
     )
 
