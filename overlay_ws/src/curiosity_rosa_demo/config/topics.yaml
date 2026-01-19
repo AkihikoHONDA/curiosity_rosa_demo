@@ -1,6 +1,6 @@
 images:
   input_compressed: "/image_raw/compressed"
-  output_capture_compressed: "/capture/image_raw/compressed"
+  output_capture_raw: "/capture/image_raw"
 
 trace:
   events: "/trace/events"

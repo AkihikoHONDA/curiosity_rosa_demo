@@ -84,11 +84,11 @@ docker run --rm -it --net=host \
   -e OPENAI_API_KEY=YOUR_API_KEY \
   -e DISPLAY \
   -e QT_X11_NO_MITSHM=1 \
-  -e XDG_RUNTIME_DIR \
+  -e XDG_RUNTIME_DIR=/tmp/xdg_runtime \
+  -e RVIZ_CONFIG_DIR=/tmp/rviz2 \
   -e XAUTHORITY=$XAUTHORITY \
   -v "$XAUTHORITY:$XAUTHORITY" \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-  -v /run/user:/run/user:ro \
   -v "$PWD/overlay_ws:/workspace/overlay_ws" \
   --name curiosity_demo \
   curiosity_demo_ext \
@@ -153,5 +153,34 @@ docker exec -it curiosity_demo bash
 ```
 ```bash
 source /opt/ros/*/setup.bash
-rviz2 -d /workspace/overlay_ws/install/curiosity_rosa_demo/share/curiosity_rosa_demo/config/rviz.yaml
+rviz2 -d /workspace/overlay_ws/install/curiosity_rosa_demo/share/curiosity_rosa_demo/config/rviz.rviz
 ```
+
+Note: `/capture/image_raw` is published with Reliable QoS, so RViz should show
+the image with default QoS settings.
+
+## Launch
+Launch all nodes from this package:
+
+```bash
+ros2 launch curiosity_rosa_demo demo.launch.py
+```
+
+Optional arguments:
+
+```bash
+# Enable RViz (default is false)
+ros2 launch curiosity_rosa_demo demo.launch.py use_rviz:=true
+
+# Enable continuous capture publishing (default is false)
+ros2 launch curiosity_rosa_demo demo.launch.py debug:=true
+
+# Override config directory
+ros2 launch curiosity_rosa_demo demo.launch.py config_dir:=/path/to/config
+```
+
+Note: `demo.launch.py` does not start the agent. Launch `agent_node` in a
+separate terminal with the ROSA venv enabled.
+
+Note: `simulator_node` only publishes `/capture/image_raw` on capture by
+default. Set the ROS parameter `debug:=true` to publish continuously.

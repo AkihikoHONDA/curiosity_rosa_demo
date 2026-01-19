@@ -68,4 +68,4 @@ def test_capture_and_score_returns_score_when_available(ros_nodes):
     response = _call_service(client_node, sim_node)
     assert response.ok is True
     assert response.score == pytest.approx(0.5, abs=1e-3)
-    assert response.image_topic == sim_node._topics.images.output_capture_compressed
+    assert response.image_topic == sim_node._topics.images.output_capture_raw

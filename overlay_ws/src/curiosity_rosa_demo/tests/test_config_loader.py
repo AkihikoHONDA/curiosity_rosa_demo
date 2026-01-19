@@ -14,7 +14,7 @@ def _write_minimal_configs(base_dir: Path, topics_override: str | None = None) -
         """
 images:
   input_compressed: "/image_raw/compressed"
-  output_capture_compressed: "/capture/image_raw/compressed"
+  output_capture_raw: "/capture/image_raw"
 
 trace:
   events: "/trace/events"
@@ -110,7 +110,7 @@ def test_missing_required_key_raises(tmp_path: Path) -> None:
     _write_minimal_configs(tmp_path)
     bad_topics = """
 images:
-  output_capture_compressed: "/capture/image_raw/compressed"
+  output_capture_raw: "/capture/image_raw"
 
 trace:
   events: "/trace/events"

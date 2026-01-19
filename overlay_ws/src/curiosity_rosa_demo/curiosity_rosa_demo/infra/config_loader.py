@@ -17,7 +17,7 @@ class ServiceConfig:
 @dataclass(frozen=True)
 class TopicsImagesConfig:
     input_compressed: str
-    output_capture_compressed: str
+    output_capture_raw: str
 
 
 @dataclass(frozen=True)
@@ -192,8 +192,8 @@ def load_topics_config(path: Path) -> TopicsConfig:
 
     images_cfg = TopicsImagesConfig(
         input_compressed=_require_str(images, "input_compressed", path, "images"),
-        output_capture_compressed=_require_str(
-            images, "output_capture_compressed", path, "images"
+        output_capture_raw=_require_str(
+            images, "output_capture_raw", path, "images"
         ),
     )
     trace_cfg = TopicsTraceConfig(events=_require_str(trace, "events", path, "trace"))

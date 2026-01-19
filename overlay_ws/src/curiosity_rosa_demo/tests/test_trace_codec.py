@@ -13,7 +13,7 @@ def test_encode_decode_roundtrip():
         tool_name="capture_and_score",
         ok=True,
         score=0.42,
-        data={"image_topic": "/capture/image_raw/compressed"},
+        data={"image_topic": "/capture/image_raw"},
     )
     encoded = encode_event(event)
     decoded = decode_event(encoded)

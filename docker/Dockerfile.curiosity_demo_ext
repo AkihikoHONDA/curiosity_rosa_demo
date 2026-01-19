@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-numpy \
     python3-pip \
     python3-venv \
+    ros-jazzy-ament-lint-auto \
     git \
   && rm -rf /var/lib/apt/lists/*
 RUN python3 -m venv /opt/rosa_venv
@@ -13,5 +14,20 @@ RUN /opt/rosa_venv/bin/pip install --no-cache-dir "numpy<2"
 RUN /opt/rosa_venv/bin/pip install --no-cache-dir \
     git+https://github.com/nasa-jpl/rosa.git
 ENV ROS_LOG_DIR=/tmp/ros_log
-RUN mkdir -p /tmp/ros_log
+ENV RVIZ_CONFIG_DIR=/tmp/rviz2
+ENV XDG_CACHE_HOME=/tmp/xdg_cache
+ENV XDG_RUNTIME_DIR=/tmp/xdg_runtime
+RUN mkdir -p /tmp/ros_log /tmp/rviz2 /tmp/xdg_cache /tmp/xdg_runtime \
+  && chmod 777 /tmp/ros_log /tmp/rviz2 /tmp/xdg_cache \
+  && chmod 700 /tmp/xdg_runtime
+
 USER spaceros-user
+RUN /bin/bash -lc "set -e; \
+  mkdir -p /home/spaceros-user/curiosity_ws/src; \
+  cd /home/spaceros-user/curiosity_ws/src; \
+  if [ ! -d demos ]; then \
+    git clone https://github.com/space-ros/demos.git; \
+  fi; \
+  cd /home/spaceros-user/curiosity_ws; \
+  source /opt/ros/*/setup.bash; \
+  colcon build --packages-select curiosity_description"

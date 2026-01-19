@@ -94,7 +94,7 @@ def test_capture_and_score(tool_node: Node):
         response.score = 0.75 if capture_state["ok"] else 0.1
         response.is_good = bool(capture_state["ok"])
         response.error_reason = "" if capture_state["ok"] else "image not received yet"
-        response.image_topic = "/capture/image_raw/compressed"
+        response.image_topic = "/capture/image_raw"
         response.debug = "test"
         return response
 

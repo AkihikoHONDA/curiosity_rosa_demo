@@ -4,12 +4,12 @@ from typing import Any, Callable, Tuple
 
 import rclpy
 from rclpy.duration import Duration
-from rclpy.qos import QoSProfile, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, qos_profile_sensor_data, ReliabilityPolicy
 from rclpy.time import Time
 from std_msgs.msg import String
 from std_srvs.srv import Empty, Trigger
 from tf2_ros import Buffer, TransformListener, TransformException
-from sensor_msgs.msg import CompressedImage
+from sensor_msgs.msg import CompressedImage, Image
 
 from curiosity_rosa_demo.domain.models import ToolResult
 
@@ -91,6 +91,25 @@ def create_compressed_image_pub(
     return node.create_publisher(CompressedImage, topic, qos_profile)
 
 
+def create_image_pub(
+    node: Any,
+    topic: str,
+    qos: QoSProfile | None = None,
+    *,
+    reliable: bool = False,
+):
+    if qos is not None:
+        qos_profile = qos
+    else:
+        qos_profile = qos_profile_sensor_data
+        if reliable:
+            qos_profile = QoSProfile(
+                depth=qos_profile.depth,
+                reliability=ReliabilityPolicy.RELIABLE,
+            )
+    return node.create_publisher(Image, topic, qos_profile)
+
+
 def create_compressed_image_sub(
     node: Any,
     topic: str,
@@ -99,6 +118,16 @@ def create_compressed_image_sub(
 ):
     qos_profile = qos or qos_profile_sensor_data
     return node.create_subscription(CompressedImage, topic, callback, qos_profile)
+
+
+def create_image_sub(
+    node: Any,
+    topic: str,
+    callback: Callable[[Image], None],
+    qos: QoSProfile | None = None,
+):
+    qos_profile = qos or qos_profile_sensor_data
+    return node.create_subscription(Image, topic, callback, qos_profile)
 
 
 def create_trace_pub(node: Any, topic: str, qos: QoSProfile | None = None):

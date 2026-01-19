@@ -16,7 +16,7 @@ def test_capture_result_roundtrip():
     original = CaptureResult(
         score=0.75,
         is_good=False,
-        image_topic="/capture/image_raw/compressed",
+        image_topic="/capture/image_raw",
         stamp=stamp,
     )
     data = original.to_dict()
@@ -50,7 +50,7 @@ def test_trace_event_roundtrip():
         tool_name="capture_and_score",
         ok=True,
         score=0.42,
-        data={"image_topic": "/capture/image_raw/compressed"},
+        data={"image_topic": "/capture/image_raw"},
     )
     data = original.to_dict()
     restored = TraceEvent.from_dict(data)
