@@ -87,6 +87,8 @@ class RosaAgentFactory:
         llm: Optional[Any] = None,
         use_stub: bool = False,
         tool_callback: Optional[Callable[[str, Any], None]] = None,
+        streaming: bool = True,
+        verbose: bool = False,
     ) -> RosaAgentWrapper:
         memory = build_memory(
             self.prompts.memory.enabled, self.prompts.memory.max_events
@@ -111,6 +113,8 @@ class RosaAgentFactory:
             llm=llm,
             tools=tools,
             system_prompts=system_prompts,
+            streaming=streaming,
+            verbose=verbose,
         )
         return RosaAgentWrapper(agent=agent, tool_names=self.tool_names, memory=memory)
 
@@ -220,6 +224,8 @@ class RosaAgentFactory:
         llm: Any,
         tools: List[Any],
         system_prompts: Any,
+        streaming: bool,
+        verbose: bool,
     ) -> Any:
         rosa_cls = getattr(rosa, "ROSA", None)
         if rosa_cls is None:
@@ -231,6 +237,8 @@ class RosaAgentFactory:
             "llm": llm,
             "tools": tools,
             "prompts": system_prompts,
+            "streaming": streaming,
+            "verbose": verbose,
         }.items():
             if key in sig.parameters:
                 kwargs[key] = value

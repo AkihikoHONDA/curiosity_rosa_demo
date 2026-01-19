@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import sys
 import threading
@@ -78,14 +79,21 @@ def summarize_tool_result(tool_name: str, result: ToolResult) -> str:
 class AgentConsoleNode(Node):
     def __init__(self) -> None:
         super().__init__("agent_node")
+        self.declare_parameter("agent_streaming", True)
+        self.declare_parameter("agent_verbose", True)
         configs = load_all_configs(node=self)
         self._prompts = configs.prompts
         self._trace_pub = create_trace_pub(self, configs.topics.trace.events)
         buffer_size = configs.thresholds.trace_buffer_size or 30
         self._trace_buffer = TraceBuffer(buffer_size)
         self._agent_factory = RosaAgentFactory(self)
+        self._streaming_enabled = bool(self.get_parameter("agent_streaming").value)
+        self._verbose_enabled = bool(self.get_parameter("agent_verbose").value)
+        tool_callback = None if self._streaming_enabled else self._on_tool_result
         self._agent = self._agent_factory.create_agent(
-            tool_callback=self._on_tool_result
+            tool_callback=tool_callback,
+            streaming=self._streaming_enabled,
+            verbose=self._verbose_enabled,
         )
         self._tool_results: List[Tuple[str, ToolResult]] = []
         self._tool_results_lock = threading.Lock()
@@ -153,6 +161,12 @@ class AgentConsoleNode(Node):
         with self._tool_results_lock:
             self._tool_results.clear()
         prompt = self._build_prompt(text)
+        if self._streaming_enabled and hasattr(self._agent.agent, "astream"):
+            try:
+                asyncio.run(self._run_prompt_streaming(prompt))
+            except Exception as exc:
+                print(f"LLM error: {exc}")
+            return
         try:
             response = self._agent.run_once(prompt)
         except Exception as exc:
@@ -165,6 +179,65 @@ class AgentConsoleNode(Node):
             print("Tools:")
             for line in summaries:
                 print(f"  {line}")
+
+    async def _run_prompt_streaming(self, prompt: str) -> str:
+        agent = self._agent.agent
+        if not hasattr(agent, "astream"):
+            raise RuntimeError("Agent does not support streaming")
+        final_text = ""
+        token_active = False
+        token_seen = False
+        def _print_stream_line(line: str) -> None:
+            nonlocal token_active
+            if token_active:
+                print()
+                token_active = False
+            if self._verbose_enabled:
+                print()
+            print(line, flush=True)
+
+        async for event in agent.astream(prompt):
+            event_type = str(event.get("type", ""))
+            if event_type == "token":
+                content = str(event.get("content", ""))
+                if content:
+                    print(content, end="", flush=True)
+                    token_active = True
+                    token_seen = True
+                continue
+            if event_type == "tool_start":
+                name = str(event.get("name", ""))
+                _print_stream_line(f"Tool: {name} start")
+                self._publish_stream_event(event)
+                continue
+            if event_type == "tool_end":
+                name = str(event.get("name", ""))
+                ok, error_reason = self._extract_stream_outcome(event.get("output"))
+                if ok is True:
+                    summary = "ok=true"
+                elif ok is False:
+                    detail = error_reason or "unknown error"
+                    summary = f"ok=false reason={detail}"
+                else:
+                    summary = "ok=unknown"
+                _print_stream_line(f"Tool: {name} end ({summary})")
+                self._publish_stream_event(event)
+                continue
+            if event_type == "final":
+                content = str(event.get("content", ""))
+                final_text = content
+                if token_seen or content.strip():
+                    _print_stream_line(f"LLM final: {content}")
+                self._publish_stream_event(event)
+                continue
+            if event_type == "error":
+                content = str(event.get("content", ""))
+                _print_stream_line(f"LLM error: {content}")
+                self._publish_stream_event(event)
+                continue
+        if token_active:
+            print()
+        return final_text
 
     def _run_tool(self, tool_name: str, func: Any) -> Optional[ToolResult]:
         result = func(self)
@@ -224,6 +297,75 @@ class AgentConsoleNode(Node):
             results = list(self._tool_results)
             self._tool_results.clear()
         return [summarize_tool_result(name, result) for name, result in results]
+
+    def _publish_stream_event(self, event: Dict[str, Any]) -> None:
+        event_type = str(event.get("type", ""))
+        kind = "OBSERVE"
+        message = ""
+        tool_name = None
+        ok = None
+        error_reason = None
+        data = None
+
+        if event_type == "tool_start":
+            tool_name = str(event.get("name", ""))
+            kind = "ACT"
+            message = f"{tool_name} start"
+            data = {"input": self._safe_stream_value(event.get("input"))}
+        elif event_type == "tool_end":
+            tool_name = str(event.get("name", ""))
+            kind = "RESULT"
+            message = f"{tool_name} end"
+            ok, error_reason = self._extract_stream_outcome(event.get("output"))
+            data = {"output": self._safe_stream_value(event.get("output"))}
+        elif event_type == "final":
+            kind = "RESULT"
+            message = "llm final"
+            data = {"content": self._safe_stream_value(event.get("content"))}
+        elif event_type == "error":
+            kind = "ERROR"
+            message = "llm error"
+            content = event.get("content")
+            error_reason = str(content) if content is not None else "unknown error"
+            data = {"content": self._safe_stream_value(content)}
+        else:
+            return
+
+        trace_event = TraceEvent(
+            event_id=str(uuid.uuid4()),
+            ts=time.time(),
+            kind=kind,
+            message=message,
+            tool_name=tool_name,
+            ok=ok,
+            error_reason=error_reason,
+            data=data,
+        )
+        self._publish_event(trace_event)
+
+    @staticmethod
+    def _safe_stream_value(value: Any) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, (str, int, float, bool)):
+            return str(value)
+        try:
+            return json.dumps(value, ensure_ascii=False)
+        except TypeError:
+            return repr(value)
+
+    @staticmethod
+    def _extract_stream_outcome(output: Any) -> Tuple[Optional[bool], Optional[str]]:
+        if isinstance(output, ToolResult):
+            return output.ok, output.error_reason
+        if isinstance(output, dict):
+            ok_value = output.get("ok")
+            ok = ok_value if isinstance(ok_value, bool) else None
+            error_reason = output.get("error_reason")
+            if not isinstance(error_reason, str) or not error_reason.strip():
+                error_reason = None
+            return ok, error_reason
+        return None, None
 
 
 def main(args: Optional[List[str]] = None) -> None:
