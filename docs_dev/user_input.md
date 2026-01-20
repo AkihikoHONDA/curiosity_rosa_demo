@@ -37,6 +37,7 @@ AIには以下の「機能」のみを与え、組み合わせ方は教えない
 - 短時間の探索的移動（マスト展開時はエラー）。
 - マストの収納（ローバーの移動が可能）
 - マストの展開（撮影が可能）
+  - Variant A ではマスト関連を無効化する。
 
 #### 4. 想定される創発的挙動（Expected Emergent Behavior）
 
@@ -59,7 +60,7 @@ AIには以下の「機能」のみを与え、組み合わせ方は教えない
 - **Visualizer (Rviz)**:
     - ロボットの内部状態（思考・スキャン結果）と、正解エリア（緑色のゾーン）を可視化する。
 
-- Curiosityローバーデモに実装されている、move_forward（nudge）, mast_open, mast_close などをラップしてLLMが使える道具とするラッパー
+- Curiosityローバーデモに実装されている、move_forward（nudge）や mast_rotate などをラップしてLLMが使える道具とするラッパー
 
 #### 6. 実行環境要件（Execution Environment） 
 
@@ -70,3 +71,10 @@ AIには以下の「機能」のみを与え、組み合わせ方は教えない
 - **構成要件**:
     - **GUI表示**: WSLg または X Server を介して、コンテナ内の Gazebo および Rviz がホスト側で正常に描画されること。
     - **ファイル共有**: 開発するPythonスクリプト群（Agent, Visualizer, Simulator）を、Docker Volume または Bind Mount を介してコンテナ内に注入し、実行可能な構成とすること。
+
+---
+
+### Variant A: マスト要素の一部を一時無効化
+
+今回の一次対応として、マスト展開/収納と排他制御を無効化する（mast_rotateは維持）。
+フレーム問題の要素は簡略化されるが、明るさ探索に焦点を当てる。

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Optional
 
@@ -9,7 +8,6 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage, Image
-from std_srvs.srv import Trigger
 
 from curiosity_rosa_demo.infra.config_loader import load_all_configs
 from curiosity_rosa_demo.infra.ros_io import (
@@ -51,8 +49,6 @@ class SimulatorNode(Node):
         self.last_pose_x = None
         self._last_image_msg: Optional[CompressedImage] = None
         self._last_tf_error: Optional[str] = None
-        self._mast_is_open: Optional[bool] = None
-        self._mast_status_future = None
 
         self._debug = bool(self.get_parameter("debug").value)
         self._image_pub = create_image_pub(
@@ -82,10 +78,6 @@ class SimulatorNode(Node):
             update_hz = 5.0
         period_sec = 1.0 / update_hz
         self._timer = self.create_timer(period_sec, self._tick)
-        self._mast_status_client = self.create_client(
-            Trigger, self._topics.adapter.get_status.name
-        )
-        self._mast_status_timer = self.create_timer(1.0, self._poll_mast_status)
 
     def _on_image(self, msg: CompressedImage) -> None:
         self._last_image_msg = msg
@@ -153,20 +145,6 @@ class SimulatorNode(Node):
         response.image_topic = self._topics.images.output_capture_raw
         response.debug = self._build_debug()
 
-        mast_is_open = self._mast_is_open
-        if mast_is_open is False:
-            response.ok = False
-            response.score = 0.0
-            response.is_good = False
-            response.error_reason = "Mast is closed"
-            return response
-        if mast_is_open is None:
-            response.ok = False
-            response.score = 0.0
-            response.is_good = False
-            response.error_reason = "mast status unavailable"
-            return response
-
         if self.last_score is None:
             response.ok = False
             response.score = 0.0
@@ -194,38 +172,8 @@ class SimulatorNode(Node):
             f"last_pose_x={'set' if self.last_pose_x is not None else 'none'}",
             f"last_image={'set' if self._last_image_msg else 'none'}",
             f"last_tf_error={self._last_tf_error or 'none'}",
-            f"mast_is_open={'unknown' if self._mast_is_open is None else self._mast_is_open}",
         ]
         return ",".join(parts)
-
-    def _poll_mast_status(self) -> None:
-        if self._mast_status_future is not None and not self._mast_status_future.done():
-            return
-        if not self._mast_status_client.service_is_ready():
-            self._mast_is_open = None
-            return
-        future = self._mast_status_client.call_async(Trigger.Request())
-        self._mast_status_future = future
-        future.add_done_callback(self._on_mast_status)
-
-    def _on_mast_status(self, future) -> None:
-        try:
-            response = future.result()
-        except Exception:
-            self._mast_is_open = None
-            return
-        if response is None or not response.success:
-            self._mast_is_open = None
-            return
-        try:
-            decoded = json.loads(response.message)
-        except json.JSONDecodeError:
-            self._mast_is_open = None
-            return
-        if not isinstance(decoded, dict) or "mast_is_open" not in decoded:
-            self._mast_is_open = None
-            return
-        self._mast_is_open = bool(decoded["mast_is_open"])
 
 
 def main() -> None:

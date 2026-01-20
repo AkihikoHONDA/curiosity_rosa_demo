@@ -40,6 +40,8 @@ def ros_node():
 
 def test_simulator_updates_last_score_from_tf(ros_node: SimulatorNode):
     node = ros_node
+    node._world_frame = "map"
+    node._base_frame = "base_link"
     broadcaster = StaticTransformBroadcaster(node)
 
     node._tick()
@@ -68,4 +70,5 @@ def test_simulator_updates_last_score_from_tf(ros_node: SimulatorNode):
 
     assert node.last_pose_x == pytest.approx(2.5, abs=1e-2)
     assert node.last_score is not None
-    assert node.last_score.score == pytest.approx(0.5, abs=1e-2)
+    expected = node._light_model.compute(2.5)
+    assert node.last_score.score == pytest.approx(expected.score, abs=1e-2)

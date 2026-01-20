@@ -8,7 +8,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from std_srvs.srv import Empty, Trigger
 
-from curiosity_rosa_demo.adapter.adapter_node import AdapterNode, EXCLUSIVITY_ERROR
+from curiosity_rosa_demo.adapter.adapter_node import AdapterNode
 
 
 @pytest.fixture
@@ -28,9 +28,6 @@ def ros_nodes():
         "turn_left": 0,
         "turn_right": 0,
         "move_stop": 0,
-        "mast_open": 0,
-        "mast_close": 0,
-        "mast_rotate": 0,
     }
 
     def _make_handler(key):
@@ -56,19 +53,6 @@ def ros_nodes():
         Empty, "/move_stop", _make_handler("move_stop"),
         callback_group=adapter_node._callback_group,
     )
-    adapter_node.create_service(
-        Empty, "/mast_open", _make_handler("mast_open"),
-        callback_group=adapter_node._callback_group,
-    )
-    adapter_node.create_service(
-        Empty, "/mast_close", _make_handler("mast_close"),
-        callback_group=adapter_node._callback_group,
-    )
-    adapter_node.create_service(
-        Empty, "/mast_rotate", _make_handler("mast_rotate"),
-        callback_group=adapter_node._callback_group,
-    )
-
     try:
         yield adapter_node, client_node, counters
     finally:
@@ -89,39 +73,17 @@ def _call_trigger(client_node: Node, service_name: str):
     return future.result()
 
 
-def test_exclusivity_and_status(ros_nodes):
+def test_move_and_status(ros_nodes):
     adapter_node, client_node, counters = ros_nodes
-
-    # mast_open succeeds and sets mast_is_open
-    response = _call_trigger(client_node, "/adapter/mast_open")
-    assert response.success is True
-    assert adapter_node.mast_is_open is True
-    assert counters["mast_open"] == 1
-
-    # move_forward is rejected while mast open
-    response = _call_trigger(client_node, "/adapter/move_forward")
-    assert response.success is False
-    assert response.message == EXCLUSIVITY_ERROR
-    assert counters["move_forward"] == 0
-
-    # move_stop is allowed even while mast open
-    response = _call_trigger(client_node, "/adapter/move_stop")
-    assert response.success is True
-    assert counters["move_stop"] == 1
 
     # get_status returns JSON with expected keys
     response = _call_trigger(client_node, "/adapter/get_status")
     assert response.success is True
     status = json.loads(response.message)
-    assert status["mast_is_open"] is True
-    assert status["move_allowed"] is False
+    assert status["mast_is_open"] is None
+    assert status["move_allowed"] is True
     assert status["last_error_reason"] is None
     assert "rover_x" in status
-
-    # mast_close allows moves again
-    response = _call_trigger(client_node, "/adapter/mast_close")
-    assert response.success is True
-    assert adapter_node.mast_is_open is False
 
     response = _call_trigger(client_node, "/adapter/move_forward")
     assert response.success is True

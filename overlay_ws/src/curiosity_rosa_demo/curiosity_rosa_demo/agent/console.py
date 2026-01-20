@@ -21,8 +21,6 @@ def build_help_text(templates: Dict[str, Dict[str, str]]) -> str:
         "  :status     Call get_status tool (add 'llm' for explanation)",
         "  :cap        Call capture_and_score tool",
         "  :nudge      Call move_nudge tool",
-        "  :mast_open  Call mast_open tool",
-        "  :mast_close Call mast_close tool",
         "  :mast_rotate Call mast_rotate tool",
         "  :demo       Run demo template",
         "",

@@ -81,6 +81,8 @@ class AgentConsoleNode(Node):
         super().__init__("agent_node")
         self.declare_parameter("agent_streaming", True)
         self.declare_parameter("agent_verbose", True)
+        self.declare_parameter("agent_rich_ui", True)
+        self.declare_parameter("agent_max_iterations", 100)
         configs = load_all_configs(node=self)
         self._prompts = configs.prompts
         self._trace_pub = create_trace_pub(self, configs.topics.trace.events)
@@ -89,11 +91,14 @@ class AgentConsoleNode(Node):
         self._agent_factory = RosaAgentFactory(self)
         self._streaming_enabled = bool(self.get_parameter("agent_streaming").value)
         self._verbose_enabled = bool(self.get_parameter("agent_verbose").value)
+        self._rich_ui_enabled = bool(self.get_parameter("agent_rich_ui").value)
+        self._max_iterations = int(self.get_parameter("agent_max_iterations").value)
         tool_callback = None if self._streaming_enabled else self._on_tool_result
         self._agent = self._agent_factory.create_agent(
             tool_callback=tool_callback,
             streaming=self._streaming_enabled,
             verbose=self._verbose_enabled,
+            max_iterations=self._max_iterations,
         )
         self._tool_results: List[Tuple[str, ToolResult]] = []
         self._tool_results_lock = threading.Lock()
@@ -134,12 +139,6 @@ class AgentConsoleNode(Node):
                     continue
                 if command == "nudge":
                     self._run_tool("move_nudge", tool_impl.move_nudge)
-                    continue
-                if command == "mast_open":
-                    self._run_tool("mast_open", tool_impl.mast_open)
-                    continue
-                if command == "mast_close":
-                    self._run_tool("mast_close", tool_impl.mast_close)
                     continue
                 if command == "mast_rotate":
                     self._run_tool("mast_rotate", tool_impl.mast_rotate)
@@ -184,6 +183,7 @@ class AgentConsoleNode(Node):
         agent = self._agent.agent
         if not hasattr(agent, "astream"):
             raise RuntimeError("Agent does not support streaming")
+        rich_ui = self._get_rich_ui()
         final_text = ""
         token_active = False
         token_seen = False
@@ -196,18 +196,30 @@ class AgentConsoleNode(Node):
                 print()
             print(line, flush=True)
 
+        def _prepare_rich_panel() -> None:
+            nonlocal token_active
+            if token_active:
+                print()
+                token_active = False
+            if self._verbose_enabled:
+                print()
+
         async for event in agent.astream(prompt):
             event_type = str(event.get("type", ""))
             if event_type == "token":
                 content = str(event.get("content", ""))
-                if content:
+                if content and rich_ui is None:
                     print(content, end="", flush=True)
                     token_active = True
                     token_seen = True
                 continue
             if event_type == "tool_start":
                 name = str(event.get("name", ""))
-                _print_stream_line(f"Tool: {name} start")
+                if rich_ui:
+                    _prepare_rich_panel()
+                    rich_ui.tool_start(name, event.get("input"))
+                else:
+                    _print_stream_line(f"Tool: {name} start")
                 self._publish_stream_event(event)
                 continue
             if event_type == "tool_end":
@@ -220,19 +232,31 @@ class AgentConsoleNode(Node):
                     summary = f"ok=false reason={detail}"
                 else:
                     summary = "ok=unknown"
-                _print_stream_line(f"Tool: {name} end ({summary})")
+                if rich_ui:
+                    _prepare_rich_panel()
+                    rich_ui.tool_end(name, ok, error_reason, event.get("output"))
+                else:
+                    _print_stream_line(f"Tool: {name} end ({summary})")
                 self._publish_stream_event(event)
                 continue
             if event_type == "final":
                 content = str(event.get("content", ""))
                 final_text = content
-                if token_seen or content.strip():
-                    _print_stream_line(f"LLM final: {content}")
+                if content.strip() or token_seen:
+                    if rich_ui:
+                        _prepare_rich_panel()
+                        rich_ui.final(content)
+                    else:
+                        _print_stream_line(f"LLM final: {content}")
                 self._publish_stream_event(event)
                 continue
             if event_type == "error":
                 content = str(event.get("content", ""))
-                _print_stream_line(f"LLM error: {content}")
+                if rich_ui:
+                    _prepare_rich_panel()
+                    rich_ui.error(content)
+                else:
+                    _print_stream_line(f"LLM error: {content}")
                 self._publish_stream_event(event)
                 continue
         if token_active:
@@ -366,6 +390,15 @@ class AgentConsoleNode(Node):
                 error_reason = None
             return ok, error_reason
         return None, None
+
+    def _get_rich_ui(self) -> Optional["RichStreamUI"]:
+        if not self._rich_ui_enabled:
+            return None
+        try:
+            from curiosity_rosa_demo.agent.rich_ui import RichStreamUI
+        except Exception:
+            return None
+        return RichStreamUI()
 
 
 def main(args: Optional[List[str]] = None) -> None:

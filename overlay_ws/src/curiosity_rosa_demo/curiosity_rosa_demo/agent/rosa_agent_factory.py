@@ -28,8 +28,6 @@ except Exception:  # pragma: no cover - optional dependency
 
 TOOL_NAMES = [
     "capture_and_score",
-    "mast_open",
-    "mast_close",
     "mast_rotate",
     "move_nudge",
     "get_status",
@@ -37,9 +35,7 @@ TOOL_NAMES = [
 
 TOOL_DESCRIPTIONS = {
     "capture_and_score": "Capture an image and return brightness score.",
-    "mast_open": "Open the rover mast for observation.",
-    "mast_close": "Close the rover mast for movement.",
-    "mast_rotate": "Rotate the mast to change camera direction.",
+    "mast_rotate": "Rotate the mast to change camera direction. Wait ~6s for stabilization.",
     "move_nudge": "Move the rover forward for a short, fixed duration.",
     "get_status": "Get current rover status summary.",
 }
@@ -89,6 +85,7 @@ class RosaAgentFactory:
         tool_callback: Optional[Callable[[str, Any], None]] = None,
         streaming: bool = True,
         verbose: bool = False,
+        max_iterations: int = 100,
     ) -> RosaAgentWrapper:
         memory = build_memory(
             self.prompts.memory.enabled, self.prompts.memory.max_events
@@ -115,6 +112,7 @@ class RosaAgentFactory:
             system_prompts=system_prompts,
             streaming=streaming,
             verbose=verbose,
+            max_iterations=max_iterations,
         )
         return RosaAgentWrapper(agent=agent, tool_names=self.tool_names, memory=memory)
 
@@ -155,8 +153,6 @@ class RosaAgentFactory:
     ) -> List[Any]:
         tool_funcs = {
             "capture_and_score": tool_impl.capture_and_score,
-            "mast_open": tool_impl.mast_open,
-            "mast_close": tool_impl.mast_close,
             "mast_rotate": tool_impl.mast_rotate,
             "move_nudge": tool_impl.move_nudge,
             "get_status": tool_impl.get_status,
@@ -226,6 +222,7 @@ class RosaAgentFactory:
         system_prompts: Any,
         streaming: bool,
         verbose: bool,
+        max_iterations: int,
     ) -> Any:
         rosa_cls = getattr(rosa, "ROSA", None)
         if rosa_cls is None:
@@ -239,6 +236,7 @@ class RosaAgentFactory:
             "prompts": system_prompts,
             "streaming": streaming,
             "verbose": verbose,
+            "max_iterations": max_iterations,
         }.items():
             if key in sig.parameters:
                 kwargs[key] = value

@@ -6,7 +6,6 @@ import pytest
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage
-from std_srvs.srv import Trigger
 
 from curiosity_rosa_demo.domain.models import LightScore
 from curiosity_rosa_demo.sim.simulator_node import SimulatorNode
@@ -23,11 +22,6 @@ def ros_nodes():
     config_dir = Path(__file__).resolve().parents[1] / "config"
     sim_node = SimulatorNode(config_dir=config_dir)
     client_node = Node("test_capture_client")
-    def _handle_status(_request, response):
-        response.success = True
-        response.message = '{"mast_is_open": true}'
-        return response
-    client_node.create_service(Trigger, "/adapter/get_status", _handle_status)
     try:
         yield sim_node, client_node
     finally:
@@ -52,7 +46,6 @@ def _call_service(client_node: Node, sim_node: SimulatorNode):
 
 def test_capture_and_score_returns_error_without_score(ros_nodes):
     sim_node, client_node = ros_nodes
-    sim_node._mast_is_open = True
     response = _call_service(client_node, sim_node)
     assert response.ok is False
     assert response.error_reason
@@ -71,7 +64,6 @@ def test_capture_and_score_returns_score_when_available(ros_nodes):
 
     sim_node._last_image_msg = msg
     sim_node.last_score = LightScore(score=0.5, is_good=False)
-    sim_node._mast_is_open = True
 
     response = _call_service(client_node, sim_node)
     assert response.ok is True

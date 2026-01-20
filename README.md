@@ -5,6 +5,12 @@ This repository provides an overlay package for the Space ROS Curiosity demo.
 It adds a simulator node for light scoring and capture, an adapter, a visualizer,
 and an LLM-driven agent console.
 
+## Demo Problem Setup
+The goal is to capture a sufficiently bright image. The rover starts in a dark
+area, so the first capture is expected to be dim. The agent should use tool
+feedback (brightness score) to decide how to improve the capture (rotate and/or
+move) until the image is bright enough.
+
 ## Environment
 - OS: WSL2 Ubuntu on Windows (assumed)
 - Container runtime: Docker
@@ -82,17 +88,14 @@ Mast rotate:
 ros2 service call /adapter/mast_rotate std_srvs/srv/Trigger "{}"
 ```
 
-Move (after mast close if needed):
+Move:
 ```bash
-ros2 service call /adapter/mast_close std_srvs/srv/Trigger "{}"
 ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"
 ```
 
 Exclusivity check:
 ```bash
-ros2 service call /adapter/mast_open std_srvs/srv/Trigger "{}"
 ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"
-# Expect: success=false, message="Need to close mast"
 ```
 
 Trace check:
@@ -119,21 +122,18 @@ You can give natural language instructions. These are the predefined console com
 - `:cap` capture and score once
 - `:status` show rover status (`:status llm` to explain)
 - `:nudge` move forward briefly
-- `:mast_open` mast open
-- `:mast_close` mast close
-- `:mast_rotate` mast rotate
+- `:mast_rotate` rotate the mast
 - `:demo` run the demo prompt template
 - `:quit` exit
 
 LLM tools exposed to the agent:
 - `capture_and_score`
-- `mast_open`, `mast_close`, `mast_rotate`
+- `mast_rotate` (rotates the mast to change camera direction)
 - `move_nudge` (forward for a short, fixed duration; default 20.0s in `config/thresholds.yaml`)
 - `get_status`
 
 Notes:
-- Initial mast state is treated as open; call `mast_close` before moving.
-- If the mast is closed, `capture_and_score` fails with `Mast is closed`.
+- This demo variant disables mast open/close to simplify behavior; mast_rotate remains available.
 
 ## Manual Run (docker run)
 Start a single demo container (use `docker exec` for additional terminals):

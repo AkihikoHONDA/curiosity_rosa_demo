@@ -24,7 +24,7 @@ setup(
         (f"share/{package_name}/config", glob("config/*.yaml")),
         (f"share/{package_name}/srv", glob("srv/*.srv")),
     ],
-    install_requires=["setuptools", "PyYAML", "numpy", "opencv-python"],
+    install_requires=["setuptools", "PyYAML", "numpy", "opencv-python", "rich"],
     zip_safe=True,
     maintainer="Curiosity ROSA Demo",
     maintainer_email="dev@example.com",

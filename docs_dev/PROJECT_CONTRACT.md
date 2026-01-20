@@ -146,3 +146,21 @@ Codex（エージェント）は、実装中に“良かれ改善”でここに
 - Tool が Curiosity 既存（Empty）を直接叩いていないか（Adapter経由か）
 - `/capture_and_score` が観測不能を `ok=false` + `error_reason` で返しているか
 - `/trace/events` の decode が壊れた入力でも落ちないか
+
+---
+
+## 8. 契約バリエーション（一次対応・明示的許可）
+
+### 8.1 Variant A: マスト要素の一部を一時無効化
+
+目的: デモの難易度を下げるため、マストの展開/収納要素を一時的に無効化する。
+
+適用範囲（本バリエーション中の扱い）:
+- LLM向けツールから `mast_open/mast_close` を外す（`mast_rotate` は維持）
+- Adapter の排他制御（`Need to close mast`）を無効化
+- `capture_and_score` はマスト状態に依存しない
+- `get_status` の `mast_is_open` は `null` を返す
+
+注意:
+- I/F定義そのものは契約として維持する（将来復帰のため）
+- 本バリエーションは一次対応であり、恒久化しない

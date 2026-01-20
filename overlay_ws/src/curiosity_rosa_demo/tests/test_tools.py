@@ -40,7 +40,7 @@ def _create_capture_service(node: Node, handler):
 
 
 def test_trigger_tools_and_status(tool_node: Node):
-    status_message = {"message": json.dumps({"mast_is_open": False})}
+    status_message = {"message": json.dumps({"move_allowed": True})}
 
     def _trigger_handler(_request, response):
         if response is None:
@@ -49,10 +49,6 @@ def test_trigger_tools_and_status(tool_node: Node):
 
     def _make_handler(name: str):
         def _handle(_request, response):
-            if name == "move_nudge":
-                response.success = False
-                response.message = "Need to close mast"
-                return response
             if name == "get_status":
                 response.success = True
                 response.message = status_message["message"]
@@ -62,23 +58,17 @@ def test_trigger_tools_and_status(tool_node: Node):
             return response
         return _handle
 
-    _create_trigger_service(tool_node, "/adapter/mast_open", _make_handler("mast_open"))
     _create_trigger_service(tool_node, "/adapter/move_forward", _make_handler("move_nudge"))
     _create_trigger_service(tool_node, "/adapter/move_stop", _make_handler("move_stop"))
     _create_trigger_service(tool_node, "/adapter/get_status", _make_handler("get_status"))
 
-    result = tool_impl.mast_open(tool_node, config_dir=_config_dir())
-    assert result.ok is True
-    assert result.data["cost"] == 2
-
     result = tool_impl.move_nudge(tool_node, config_dir=_config_dir())
-    assert result.ok is False
-    assert result.error_reason == "Need to close mast"
+    assert result.ok is True
     assert result.data["cost"] == 5
 
     result = tool_impl.get_status(tool_node, config_dir=_config_dir())
     assert result.ok is True
-    assert result.data["mast_is_open"] is False
+    assert result.data["move_allowed"] is True
     assert result.data["cost"] == 1
 
     status_message["message"] = "not-json"

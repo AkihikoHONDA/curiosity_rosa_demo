@@ -15,16 +15,12 @@ from curiosity_rosa_demo.infra.config_loader import load_all_configs
 from curiosity_rosa_demo.infra.ros_io import create_tf, lookup_x_in_world
 
 
-EXCLUSIVITY_ERROR = "Need to close mast"
-
-
 class AdapterNode(Node):
     def __init__(self, *, config_dir: Optional[Path] = None) -> None:
         super().__init__("adapter")
         configs = load_all_configs(config_dir=config_dir, node=self)
         self._topics = configs.topics
 
-        self.mast_is_open = True
         self.last_error_reason: Optional[str] = None
         self._callback_group = ReentrantCallbackGroup()
 
@@ -33,22 +29,6 @@ class AdapterNode(Node):
         self._base_frame = self._topics.tf.base_frame
 
         self._services = []
-        self._services.append(
-            self.create_service(
-                Trigger,
-                self._topics.adapter.mast_open.name,
-                self._handle_mast_open,
-                callback_group=self._callback_group,
-            )
-        )
-        self._services.append(
-            self.create_service(
-                Trigger,
-                self._topics.adapter.mast_close.name,
-                self._handle_mast_close,
-                callback_group=self._callback_group,
-            )
-        )
         self._services.append(
             self.create_service(
                 Trigger,
@@ -98,46 +78,25 @@ class AdapterNode(Node):
             )
         )
 
-    def _handle_mast_open(self, _request, response):
-        return self._call_curiosity(
-            response,
-            self._topics.curiosity.mast_open.name,
-            on_success=lambda: self._set_mast(True),
-        )
-
-    def _handle_mast_close(self, _request, response):
-        return self._call_curiosity(
-            response,
-            self._topics.curiosity.mast_close.name,
-            on_success=lambda: self._set_mast(False),
-        )
-
-    def _handle_mast_rotate(self, _request, response):
-        return self._call_curiosity(
-            response,
-            self._topics.curiosity.mast_rotate.name,
-            on_success=lambda: self._set_mast(True),
-        )
-
     def _handle_move_forward(self, _request, response):
         return self._handle_move(
             response,
             self._topics.curiosity.move_forward.name,
-            enforce_exclusivity=True,
+            enforce_exclusivity=False,
         )
 
     def _handle_turn_left(self, _request, response):
         return self._handle_move(
             response,
             self._topics.curiosity.turn_left.name,
-            enforce_exclusivity=True,
+            enforce_exclusivity=False,
         )
 
     def _handle_turn_right(self, _request, response):
         return self._handle_move(
             response,
             self._topics.curiosity.turn_right.name,
-            enforce_exclusivity=True,
+            enforce_exclusivity=False,
         )
 
     def _handle_move_stop(self, _request, response):
@@ -147,10 +106,16 @@ class AdapterNode(Node):
             enforce_exclusivity=False,
         )
 
+    def _handle_mast_rotate(self, _request, response):
+        return self._call_curiosity(
+            response,
+            self._topics.curiosity.mast_rotate.name,
+        )
+
     def _handle_get_status(self, _request, response):
         status = {
-            "mast_is_open": self.mast_is_open,
-            "move_allowed": not self.mast_is_open,
+            "mast_is_open": None,
+            "move_allowed": True,
             "last_error_reason": self.last_error_reason,
             "rover_x": self._lookup_rover_x(),
         }
@@ -170,11 +135,6 @@ class AdapterNode(Node):
         return float(result.data["x"])
 
     def _handle_move(self, response, service_name: str, *, enforce_exclusivity: bool):
-        if enforce_exclusivity and self.mast_is_open:
-            self.last_error_reason = EXCLUSIVITY_ERROR
-            response.success = False
-            response.message = EXCLUSIVITY_ERROR
-            return response
         return self._call_curiosity(response, service_name)
 
     def _call_curiosity(self, response, service_name: str, on_success=None):
@@ -210,10 +170,6 @@ class AdapterNode(Node):
             return True, ""
         finally:
             self.destroy_client(client)
-
-    def _set_mast(self, is_open: bool) -> None:
-        self.mast_is_open = is_open
-
 
 def main() -> None:
     rclpy.init()

@@ -10,6 +10,9 @@
 - 観測サービス：`/capture_and_score`（curiosity_rosa_demo/srv/CaptureAndScore）
 - 排他エラー文字列：`Need to close mast`
 
+## Variant A（一次対応）
+マスト要素を一時無効化するため、マスト操作と排他制御に関する項目は **スキップ** する。
+
 ## 目的 / 完了条件 (DoD)
 - [ ] “最小スモーク一式” を定義し、READMEに手順として固定すること。
 
@@ -17,7 +20,7 @@
   2) I/F確認: 必須service/topicが存在する
      - `/capture_and_score` service
      - `/adapter/move_forward`, `/adapter/turn_left`, `/adapter/turn_right`, `/adapter/move_stop`
-     - `/adapter/mast_open`, `/adapter/mast_close`, `/adapter/mast_rotate`
+     - `/adapter/mast_rotate`
      - `/adapter/get_status`
      - `/capture/image_raw` topic
      - `/trace/events` topic
@@ -25,7 +28,6 @@
   3) 観測: `capture_and_score` を実行し、ok/score/is_good/image_topic が返る
   4) 行動（向き変更）: `mast_rotate` を実行し、観測を繰り返せる
   5) 行動（移動）: `move_forward` 等を実行し、scoreが改善することがある（明るい領域へ到達）
-  6) 排他: `mast_open` 後に `move_forward` が拒否され、Trigger.message が `Need to close mast` になる
 
 - [ ] テスト併走（最低ライン）。
   - [ ] `pytest -q` が通る（ユニットテスト群が緑）
@@ -53,17 +55,7 @@
   - `ros2 service call /capture_and_score curiosity_rosa_demo/srv/CaptureAndScore "{}"`
 
   マスト操作（Trigger）:
-  - `ros2 service call /adapter/mast_open std_srvs/srv/Trigger "{}"`
   - `ros2 service call /adapter/mast_rotate std_srvs/srv/Trigger "{}"`
-  - `ros2 service call /adapter/mast_close std_srvs/srv/Trigger "{}"`
-
-  排他確認（mast_open中は移動拒否）:
-  - `ros2 service call /adapter/mast_open std_srvs/srv/Trigger "{}"`
-  - `ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"`
-    - 期待: `success: false`, `message: "Need to close mast"`
-
-  - `ros2 service call /adapter/mast_close std_srvs/srv/Trigger "{}"`
-  - `ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"`
 
   Trace確認:
   - `ros2 topic echo /trace/events --once`

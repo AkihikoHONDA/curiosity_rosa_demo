@@ -5,6 +5,12 @@
 明るさスコアとキャプチャ用のシミュレータノード、アダプタ、可視化、
 LLM エージェント用のコンソールを追加します。
 
+## デモの問題設定
+目的は十分に明るい画像を撮影することです。ローバーは暗い場所から
+開始するため、最初の撮影は暗くなる想定です。エージェントは
+ツールのフィードバック（明るさスコア）を使って、マストの回転や移動を
+組み合わせ、明るい画像が得られるまで改善します。
+
 ## 環境条件
 - OS: Windows 上の WSL2 Ubuntu（想定）
 - コンテナランタイム: Docker
@@ -82,17 +88,13 @@ ros2 service call /capture_and_score curiosity_rosa_demo/srv/CaptureAndScore "{}
 ros2 service call /adapter/mast_rotate std_srvs/srv/Trigger "{}"
 ```
 
-移動（必要なら mast_close 後）:
 ```bash
-ros2 service call /adapter/mast_close std_srvs/srv/Trigger "{}"
 ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"
 ```
 
 排他確認:
 ```bash
-ros2 service call /adapter/mast_open std_srvs/srv/Trigger "{}"
 ros2 service call /adapter/move_forward std_srvs/srv/Trigger "{}"
-# 期待: success=false, message="Need to close mast"
 ```
 
 Trace 確認:
@@ -119,21 +121,18 @@ docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/save_captur
 - `:cap` 1回撮影してスコア判定
 - `:status` ローバー状態表示（`:status llm` で説明）
 - `:nudge` 規定秒数前進
-- `:mast_open` mast open
-- `:mast_close` mast close
-- `:mast_rotate` mast rotate
+- `:mast_rotate` マスト旋回
 - `:demo` デモ用プロンプトを実行
 - `:quit` 終了
 
 LLMに公開しているツール:
 - `capture_and_score`
-- `mast_open`, `mast_close`, `mast_rotate`
+- `mast_rotate`
 - `move_nudge`（規定秒数前進、デフォルト 20.0 秒。`config/thresholds.yaml` で変更）
 - `get_status`
 
 注記:
-- 初期状態は mast open として扱います。移動前に `mast_close` が必要です。
-- mast が close のとき、`capture_and_score` は `Mast is closed` で失敗します。
+- 本デモの一次対応では、マストの開閉は無効化しています（mast_rotateは利用可能）。
 
 ## 手動起動（docker run）
 単一のデモコンテナを起動します（追加ターミナルは `docker exec` を使用）:

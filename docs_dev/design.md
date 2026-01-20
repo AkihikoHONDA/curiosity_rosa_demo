@@ -7,6 +7,19 @@
 - Curiosity既存I/F（Service/Topic名と型）は外部仕様を正として明文化した。
 - Adapter公開I/Fは **`/adapter/*` 名前空間**へ統一し、既存Serviceとの衝突を防いだ。
 - Adapter公開Serviceは、失敗理由（`Need to close mast`）を返せるよう **`std_srvs/srv/Trigger`** をデフォルトにした。
+
+## バリエーション（一次対応）
+
+### Variant A: マスト要素の一部を一時無効化
+
+デモ簡素化のため、マスト展開/収納と排他制御を一時的に無効化する。
+このバリエーション中は以下が適用される。
+- LLMツールから `mast_open/mast_close` を外す（`mast_rotate` は維持）
+- Adapterの排他制御（`Need to close mast`）を無効化
+- `capture_and_score` はマスト状態に依存しない
+- `mast_is_open` は `null` を返す
+
+以降のマスト/排他に関する記述は **Variant Aでは適用しない**。
 - Simulator観測I/F `CaptureAndScore.srv` を「ok/error_reason + stamp」を含む形で確定した。
 - `config/topics.yaml` を「curiosity実体」と「adapter公開」と「sim独自I/F」を分離して記述できるスキーマへ更新した。
 - `config/prompts.yaml` を ROSA `RobotSystemPrompts` のカテゴリ（embodiment/critical/context/nuance）に寄せ、bootstrap/memory/templates を同居させた。

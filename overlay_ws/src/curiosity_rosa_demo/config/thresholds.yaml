@@ -1,6 +1,6 @@
 light_model:
   x_min: 0.0
-  x_good: 2.5
+  x_good: 1.0
 
 quality:
   score_threshold: 0.8
@@ -8,9 +8,5 @@ quality:
 trace:
   buffer_size: 30
 
-viz:
-  bright_zone_x_min: 5.0
-  bright_zone_x_max: 10.0
-
 move:
-  nudge_duration_sec: 20.0
+  nudge_duration_sec: 30.0

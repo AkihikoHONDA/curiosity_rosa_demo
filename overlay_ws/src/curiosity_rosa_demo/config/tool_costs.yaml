@@ -1,7 +1,5 @@
 tools:
   capture_and_score: 1
   mast_rotate: 2
-  mast_open: 2
-  mast_close: 2
   move_nudge: 5
   get_status: 1

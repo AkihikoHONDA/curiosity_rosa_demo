@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -15,6 +16,10 @@ try:
     from curiosity_rosa_demo.srv import CaptureAndScore
 except Exception:  # pragma: no cover - available after rosidl build
     CaptureAndScore = None
+
+
+_MOVE_LOCK = threading.Lock()
+_MOVE_IN_PROGRESS = False
 
 
 class ToolContext:
@@ -50,6 +55,13 @@ def capture_and_score(node: Any, *, config_dir: Optional[Path] = None) -> ToolRe
         return ToolResult(ok=False, error_reason="CaptureAndScore type unavailable")
 
     cost = ctx.cost_for("capture_and_score")
+    with _MOVE_LOCK:
+        if _MOVE_IN_PROGRESS:
+            return ToolResult(
+                ok=False,
+                error_reason="Move in progress",
+                data={"score": 0.0, "is_good": False, "cost": cost},
+            )
     client = node.create_client(
         CaptureAndScore, ctx.topics.services.capture_and_score.name
     )
@@ -103,36 +115,43 @@ def capture_and_score(node: Any, *, config_dir: Optional[Path] = None) -> ToolRe
 
 
 def mast_open(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
-    ctx = ToolContext(node, config_dir=config_dir)
-    return _call_trigger_tool(ctx, "mast_open", ctx.topics.adapter.mast_open.name)
+    return ToolResult(ok=False, error_reason="Mast controls are disabled in this variant")
 
 
 def mast_close(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
-    ctx = ToolContext(node, config_dir=config_dir)
-    return _call_trigger_tool(ctx, "mast_close", ctx.topics.adapter.mast_close.name)
+    return ToolResult(ok=False, error_reason="Mast controls are disabled in this variant")
 
 
 def mast_rotate(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
     ctx = ToolContext(node, config_dir=config_dir)
-    return _call_trigger_tool(ctx, "mast_rotate", ctx.topics.adapter.mast_rotate.name)
+    result = _call_trigger_tool(ctx, "mast_rotate", ctx.topics.adapter.mast_rotate.name)
+    time.sleep(6.0)
+    return result
 
 
 def move_nudge(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
     ctx = ToolContext(node, config_dir=config_dir)
     cost = ctx.cost_for("move_nudge")
-    forward = call_trigger_service(
-        ctx.node, ctx.topics.adapter.move_forward.name, timeout_sec=1.0
-    )
-    if not forward.ok:
-        return _with_cost(forward, cost)
-    duration = float(ctx.thresholds.move_nudge_duration_sec)
-    time.sleep(duration)
-    stop = call_trigger_service(
-        ctx.node, ctx.topics.adapter.move_stop.name, timeout_sec=1.0
-    )
-    if not stop.ok:
-        return _with_cost(stop, cost)
-    return ToolResult(ok=True, data={"duration_sec": duration, "cost": cost})
+    global _MOVE_IN_PROGRESS
+    with _MOVE_LOCK:
+        _MOVE_IN_PROGRESS = True
+    try:
+        forward = call_trigger_service(
+            ctx.node, ctx.topics.adapter.move_forward.name, timeout_sec=1.0
+        )
+        if not forward.ok:
+            return _with_cost(forward, cost)
+        duration = float(ctx.thresholds.move_nudge_duration_sec)
+        time.sleep(duration)
+        stop = call_trigger_service(
+            ctx.node, ctx.topics.adapter.move_stop.name, timeout_sec=1.0
+        )
+        if not stop.ok:
+            return _with_cost(stop, cost)
+        return ToolResult(ok=True, data={"duration_sec": duration, "cost": cost})
+    finally:
+        with _MOVE_LOCK:
+            _MOVE_IN_PROGRESS = False
 
 
 def move_forward(node: Any, *, config_dir: Optional[Path] = None) -> ToolResult:
