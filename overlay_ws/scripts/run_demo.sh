@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -eo pipefail
+set -euo pipefail
+
+# Avoid stale ROS graph cache from previous runs in the same environment.
+ros2 daemon stop >/dev/null 2>&1 || true
 
 cd /workspace/overlay_ws
 set +u
