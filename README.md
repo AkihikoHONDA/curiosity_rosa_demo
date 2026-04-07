@@ -17,7 +17,7 @@ move) until the image is bright enough.
 - OpenAI API Key (set `OPENAI_API_KEY`)
 - Base image build: `osrf/space-ros:curiosity_demo` is not distributed; build it from `https://github.com/space-ros/demos.git` by running `./build.sh` in `demos/curiosity_rover`
 
-## Installation
+## One-Time Setup
 1) Clone this repository.
 2) Build the Curiosity demo base image (required, outside this repo):
 
@@ -40,14 +40,21 @@ chmod +x overlay_ws/scripts/gen_env.sh
 ./overlay_ws/scripts/gen_env.sh
 ```
 
-## Quick Start (Docker Compose)
-1) Build the overlay workspace:
+## Quick Start (Daily)
+1) Start the Curiosity base demo first (separate repository):
+
+```bash
+cd ~/Workspace/demos/curiosity_rover
+./run.sh
+```
+
+2) Build the overlay workspace:
 
 ```bash
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/build_overlay.sh
 ```
 
-2) Launch the demo nodes (simulator/adapter/visualizer, RViz optional):
+3) Launch the demo nodes (simulator/adapter/visualizer, RViz optional):
 
 ```bash
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_demo.sh
@@ -57,7 +64,7 @@ docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_demo.sh
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_demo.sh use_rviz:=true
 ```
 
-3) Start the agent in a separate terminal:
+4) Start the agent in a separate terminal:
 
 ```bash
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_agent.sh
@@ -129,7 +136,7 @@ You can give natural language instructions. These are the predefined console com
 LLM tools exposed to the agent:
 - `capture_and_score`
 - `mast_rotate` (rotates the mast to change camera direction)
-- `move_nudge` (forward for a short, fixed duration; default 20.0s in `config/thresholds.yaml`)
+- `move_nudge` (forward for a short, fixed duration; default 30.0s in `config/thresholds.yaml`)
 - `get_status`
 
 Notes:

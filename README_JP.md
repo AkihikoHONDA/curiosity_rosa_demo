@@ -17,7 +17,7 @@ LLM エージェント用のコンソールを追加します。
 - OpenAI API Key（`OPENAI_API_KEY` を設定）
 - ベースイメージのビルド: `osrf/space-ros:curiosity_demo` は配布されていないため、`https://github.com/space-ros/demos.git` をクローンし `demos/curiosity_rover` で `./build.sh` を実行してビルドします
 
-## インストール方法
+## 初回セットアップ
 1) 本リポジトリをクローンします。
 2) Curiosity デモのベースイメージをビルドします（このリポジトリの外で実行）:
 
@@ -40,14 +40,21 @@ chmod +x overlay_ws/scripts/gen_env.sh
 ./overlay_ws/scripts/gen_env.sh
 ```
 
-## Quick Start（Docker Compose）
-1) overlay ワークスペースをビルドします:
+## Quick Start（日次）
+1) 先に Curiosity 本体デモを起動します（別リポジトリ）:
+
+```bash
+cd ~/Workspace/demos/curiosity_rover
+./run.sh
+```
+
+2) overlay ワークスペースをビルドします:
 
 ```bash
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/build_overlay.sh
 ```
 
-2) デモノードを起動します（simulator/adapter/visualizer、RViz は任意）:
+3) デモノードを起動します（simulator/adapter/visualizer、RViz は任意）:
 
 ```bash
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_demo.sh
@@ -57,7 +64,7 @@ docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_demo.sh
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_demo.sh use_rviz:=true
 ```
 
-3) 別ターミナルでエージェントを起動します:
+4) 別ターミナルでエージェントを起動します:
 
 ```bash
 docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/run_agent.sh
@@ -128,7 +135,7 @@ docker compose run --rm curiosity_demo /workspace/overlay_ws/scripts/save_captur
 LLMに公開しているツール:
 - `capture_and_score`
 - `mast_rotate`
-- `move_nudge`（規定秒数前進、デフォルト 20.0 秒。`config/thresholds.yaml` で変更）
+- `move_nudge`（規定秒数前進、デフォルト 30.0 秒。`config/thresholds.yaml` で変更）
 - `get_status`
 
 注記:
