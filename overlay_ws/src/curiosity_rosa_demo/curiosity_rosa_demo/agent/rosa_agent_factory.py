@@ -73,8 +73,8 @@ class StubAgent:
 class RosaAgentFactory:
     def __init__(self, node: Any, *, config_dir: Optional[Path] = None) -> None:
         self.node = node
-        configs = load_all_configs(config_dir=config_dir, node=node)
-        self.prompts = configs.prompts
+        self.configs = load_all_configs(config_dir=config_dir, node=node)
+        self.prompts = self.configs.prompts
         self.tool_names = list(TOOL_NAMES)
 
     def create_agent(
@@ -119,6 +119,8 @@ class RosaAgentFactory:
     def _build_llm(self) -> Any:
         api_key = self._get_param_or_env("llm_api_key", "OPENAI_API_KEY")
         model = self._get_param_or_env("llm_model", "OPENAI_MODEL", required=False)
+        if not model:
+            model = self.configs.llm.openai_model
         if not api_key:
             raise RuntimeError(
                 "LLM API key is missing. Set OPENAI_API_KEY or node param llm_api_key."

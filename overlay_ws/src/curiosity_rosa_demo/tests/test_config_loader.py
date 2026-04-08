@@ -107,6 +107,16 @@ def test_load_all_configs_minimal(tmp_path: Path) -> None:
     assert bundle.tool_costs.tools["capture_and_score"] == 1
     assert bundle.prompts.bootstrap.enabled is True
     assert bundle.rviz.raw["fixed_frame"] == "map"
+    assert bundle.llm.openai_model is None
+
+
+def test_load_llm_config_when_present(tmp_path: Path) -> None:
+    _write_minimal_configs(tmp_path)
+    _write_yaml(tmp_path / "llm.yaml", "openai_model: gpt-4o\n")
+
+    bundle = load_all_configs(config_dir=tmp_path)
+
+    assert bundle.llm.openai_model == "gpt-4o"
 
 
 def test_missing_required_key_raises(tmp_path: Path) -> None:

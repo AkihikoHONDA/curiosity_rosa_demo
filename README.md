@@ -41,6 +41,15 @@ EOF
 chmod +x run.sh
 ```
 
+
+LLM model selection via config file (`overlay_ws/src/curiosity_rosa_demo/config/llm.yaml`):
+
+```yaml
+openai_model: gpt-4o
+```
+
+Priority is: ROS param `llm_model` > env `OPENAI_MODEL` > `llm.yaml`.
+
 4) Prepare `.env` for Docker Compose:
 
 ```bash
@@ -237,3 +246,4 @@ docker run --rm -it --net=host \
   curiosity_demo_ext \
   bash -lc "source /opt/ros/*/setup.bash && source /opt/rosa_venv/bin/activate && cd /workspace/overlay_ws && pytest -q src/curiosity_rosa_demo/tests"
 ```
+

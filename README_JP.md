@@ -41,6 +41,15 @@ EOF
 chmod +x run.sh
 ```
 
+
+LLMモデルは設定ファイル（`overlay_ws/src/curiosity_rosa_demo/config/llm.yaml`）で指定できます:
+
+```yaml
+openai_model: gpt-4o
+```
+
+優先順位: ROSパラメータ `llm_model` > 環境変数 `OPENAI_MODEL` > `llm.yaml`。
+
 4) Docker Compose 用の `.env` を用意します:
 
 ```bash
@@ -235,3 +244,4 @@ docker run --rm -it --net=host \
   curiosity_demo_ext \
   bash -lc "source /opt/ros/*/setup.bash && source /opt/rosa_venv/bin/activate && cd /workspace/overlay_ws && pytest -q src/curiosity_rosa_demo/tests"
 ```
+

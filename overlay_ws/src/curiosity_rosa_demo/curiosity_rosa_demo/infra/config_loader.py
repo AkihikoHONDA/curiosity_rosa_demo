@@ -125,12 +125,18 @@ class RvizConfig:
 
 
 @dataclass(frozen=True)
+class LlmConfig:
+    openai_model: Optional[str]
+
+
+@dataclass(frozen=True)
 class ConfigBundle:
     topics: TopicsConfig
     thresholds: ThresholdsConfig
     tool_costs: ToolCostsConfig
     prompts: PromptsConfig
     rviz: RvizConfig
+    llm: LlmConfig
 
 
 def resolve_config_dir(node: Any | None, override: str | None = None) -> Path:
@@ -172,12 +178,14 @@ def load_all_configs(config_dir: Path | None = None, node: Any | None = None) ->
     tool_costs = load_tool_costs_config(cfg_dir / "tool_costs.yaml")
     prompts = load_prompts_config(cfg_dir / "prompts.yaml")
     rviz = load_rviz_config(cfg_dir / "rviz.yaml")
+    llm = load_llm_config(cfg_dir / "llm.yaml")
     return ConfigBundle(
         topics=topics,
         thresholds=thresholds,
         tool_costs=tool_costs,
         prompts=prompts,
         rviz=rviz,
+        llm=llm,
     )
 
 
@@ -337,6 +345,19 @@ def load_rviz_config(path: Path) -> RvizConfig:
     if not isinstance(data, dict):
         raise ValueError(f"{path}: rviz config must be a mapping")
     return RvizConfig(raw=data)
+
+
+def load_llm_config(path: Path) -> LlmConfig:
+    if not path.exists():
+        return LlmConfig(openai_model=None)
+    data = _load_yaml(path)
+    model = data.get("openai_model")
+    if model is None:
+        return LlmConfig(openai_model=None)
+    if not isinstance(model, str):
+        raise ValueError(f"{path}: 'openai_model' must be a string")
+    model = model.strip()
+    return LlmConfig(openai_model=model or None)
 
 
 def _load_yaml(path: Path) -> Dict[str, Any]:
