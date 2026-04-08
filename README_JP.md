@@ -27,7 +27,21 @@ cd demos/curiosity_rover
 ./build.sh
 ```
 
-3) Docker Compose 用の `.env` を用意します:
+3) （推奨）外部 Curiosity デモ側の `run.sh` を、古いコンテナを掃除してから起動する内容に更新します:
+
+```bash
+cd ~/Workspace/demos/curiosity_rover
+cat > run.sh <<''EOF''
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker compose down --remove-orphans
+docker compose up -d
+EOF
+chmod +x run.sh
+```
+
+4) Docker Compose 用の `.env` を用意します:
 
 ```bash
 cp .env.example .env

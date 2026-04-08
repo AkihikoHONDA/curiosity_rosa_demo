@@ -27,7 +27,21 @@ cd demos/curiosity_rover
 ./build.sh
 ```
 
-3) Prepare `.env` for Docker Compose:
+3) (Recommended) Update the external Curiosity demo `run.sh` to always clean up stale containers first:
+
+```bash
+cd ~/Workspace/demos/curiosity_rover
+cat > run.sh <<''EOF''
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker compose down --remove-orphans
+docker compose up -d
+EOF
+chmod +x run.sh
+```
+
+4) Prepare `.env` for Docker Compose:
 
 ```bash
 cp .env.example .env
